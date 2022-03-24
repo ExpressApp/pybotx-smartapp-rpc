@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -e
+set -x
+
+
+mypy pybotx_smartapp_rpc tests
+flake8 pybotx_smartapp_rpc tests
+
+black --check pybotx_smartapp_rpc tests --diff
+isort --recursive --check-only pybotx_smartapp_rpc tests

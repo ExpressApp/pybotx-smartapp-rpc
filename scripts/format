@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -e
+
+isort --recursive  --force-single-line-imports pybotx_smartapp_rpc tests
+autoflake --recursive --remove-all-unused-imports --remove-unused-variables --in-place pybotx_smartapp_rpc tests
+black pybotx_smartapp_rpc tests
+isort --recursive pybotx_smartapp_rpc tests
+git ls-files | grep ".*\.py" | xargs add-trailing-comma --py36-plus --exit-zero-even-if-changed
