@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pybotx-smartapp-rpc"
-version = "0.3.3"
+version = "0.3.4"
 description = "eXpress SmartApp JSON-RPC library"
 authors = ["Arseniy Zhiltsov <arseniy.zhiltsov@ccsteam.ru>"]
 readme = "README.md"
@@ -8,7 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = ">=3.8,<3.11"
 pydantic = "^1.8.2"
-pybotx = "~0.34.0"
+pybotx = "~0.35.0"
 add-trailing-comma = "^2.2.1"
 fastapi = "~0.70.1"
 
