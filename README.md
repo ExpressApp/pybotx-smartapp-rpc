@@ -100,13 +100,14 @@ async def notify_me(
     await smartapp.send_event("notified", files=[notify_file])
     ...
 ```
-* Используя метод `smartapp.update_app_counter` можно обновлять счетчик уведомлений на иконке смартаппа.  
+* Используя метод `smartapp.send_push` можно отправлять пуш уведомлений на клиент.
+И обновлять счетчик уведомлений на икноке смартапа.
 ``` python
 @rpc.method("notify-me")
 async def notify_me(
     smartapp: SmartApp, rpc_arguments: NotifyMeArgs
 ) -> RPCResultResponse[None]:
-    await smartapp.update_app_counter(42)
+    await smartapp.send_push(42, "You have 42 new emails!")
     ...
 ```
 * В мидлварях можно создавать новые объекты в `smartapp.state`, чтобы потом использовать их в хендлерах.

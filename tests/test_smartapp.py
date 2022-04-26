@@ -33,7 +33,7 @@ async def test_send_event(
     )
 
 
-async def test_update_app_counter(
+async def test_send_push(
     bot: AsyncMock,
     bot_id: UUID,
     chat_id: UUID,
@@ -42,7 +42,7 @@ async def test_update_app_counter(
     smartapp = SmartApp(bot, bot_id, chat_id)
 
     # - Act -
-    await smartapp.update_app_counter(42)
+    await smartapp.send_push(42, "Pushed!")
 
     # - Assert -
     assert len(bot.method_calls) == 1
@@ -50,4 +50,5 @@ async def test_update_app_counter(
         bot_id=bot_id,
         chat_id=chat_id,
         smartapp_counter=42,
+        body="Pushed!",
     )
