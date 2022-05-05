@@ -2,11 +2,11 @@
 Библиотека, позволяющая писать смартаппы, используя [наш JSONRPC-like протокол](https://ccsteam.atlassian.net/wiki/spaces/EI/pages/193167368/SmartApp+RPC)
 
 ## Установка
-В `pyproject.toml`:
-1. Переключите `pybotx` на ветку `next`:
-`botx = { git = "https://github.com/ExpressApp/pybotx.git", rev = "next" }`
-2. Добавьте зависимость:
-`botx-smartapp-rpc = { git = "https://gitlab.ccsteam.ru/rnd/botx-smartapp-rpc", rev = "master" }`
+Используя `poetry`:
+
+```bash
+poetry add pybotx-smartapp-rpc
+```
 
 ## Добавление RPC методов
 1. Создайте класс для входящих аргументов:
