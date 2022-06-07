@@ -3,11 +3,13 @@ from unittest.mock import AsyncMock
 from uuid import UUID
 
 from pybotx import Document, Image, SmartAppEvent
+from pydantic import Field
 
 from pybotx_smartapp_rpc import (
     RPCArgsBaseModel,
     RPCError,
     RPCErrorResponse,
+    RPCResponseBaseModel,
     RPCResultResponse,
     RPCRouter,
     SmartApp,
@@ -269,6 +271,51 @@ async def test_rpc_call_with_args(
         ref=ref,
         files=[],
         data={"status": "ok", "result": 3, "type": "smartapp_rpc"},
+    )
+
+
+async def test_rpc_call_acceptiong_and_returning_aliased_model(
+    smartapp_event_factory: Callable[..., SmartAppEvent],
+    bot: AsyncMock,
+    bot_id: UUID,
+    chat_id: UUID,
+    ref: UUID,
+) -> None:
+    # - Arrange -
+    rpc = RPCRouter()
+
+    class SumArgs(RPCArgsBaseModel):
+        first_arg: int = Field(alias="firstArg")
+        second_arg: int = Field(alias="secondArg")
+
+    class SumResponse(RPCResponseBaseModel):
+        call_result: int = Field(alias="callResult")
+
+    @rpc.method("sum")
+    async def sum_handler(
+        smartapp: SmartApp,
+        args: SumArgs,
+    ) -> RPCResultResponse[SumResponse]:
+        return RPCResultResponse(
+            SumResponse(call_result=args.first_arg + args.second_arg),
+        )
+
+    smartapp_rpc = SmartAppRPC(routers=[rpc])
+
+    # - Act -
+    await smartapp_rpc.handle_smartapp_event(
+        smartapp_event_factory("sum", params={"firstArg": 1, "secondArg": 2}),
+        bot,
+    )
+
+    # - Assert -
+    assert len(bot.method_calls) == 1
+    bot.send_smartapp_event.assert_awaited_once_with(
+        bot_id=bot_id,
+        chat_id=chat_id,
+        ref=ref,
+        files=[],
+        data={"status": "ok", "result": {"callResult": 3}, "type": "smartapp_rpc"},
     )
 
 

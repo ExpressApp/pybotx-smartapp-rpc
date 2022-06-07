@@ -1,12 +1,19 @@
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, Generic, List, TypeVar
+from typing import Any, Dict, Generic, List, TypeVar, Union
 
 from pybotx import File
+from pydantic import BaseModel
 from pydantic.error_wrappers import ValidationError
 
 from pybotx_smartapp_rpc.models.errors import RPCError
 
-ResultType = TypeVar("ResultType")
+_ResultType = Union[BaseModel, float, int, str, bool, List, Dict]
+ResultType = TypeVar("ResultType", bound=_ResultType)
+
+
+class RPCResponseBaseModel(BaseModel):
+    class Config:
+        allow_population_by_field_name = True
 
 
 @dataclass
@@ -15,10 +22,14 @@ class RPCResultResponse(Generic[ResultType]):
     files: List[File] = field(default_factory=list)
 
     def jsonable_dict(self) -> Dict[str, Any]:
+        result: _ResultType = self.result
+        if isinstance(self.result, BaseModel):
+            result = self.result.dict(by_alias=True)
+
         return {
             "status": "ok",
             "type": "smartapp_rpc",
-            "result": self.result,
+            "result": result,
         }
 
 

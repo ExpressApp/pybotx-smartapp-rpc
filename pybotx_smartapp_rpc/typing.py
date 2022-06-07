@@ -1,7 +1,6 @@
 from typing import Awaitable, Callable, Dict, Type, TypeVar, Union
 
-from pydantic import BaseModel as RPCArgsBaseModel
-
+from pybotx_smartapp_rpc.models.request import RPCArgsBaseModel
 from pybotx_smartapp_rpc.models.responses import RPCErrorResponse, RPCResultResponse
 from pybotx_smartapp_rpc.smartapp import SmartApp
 
