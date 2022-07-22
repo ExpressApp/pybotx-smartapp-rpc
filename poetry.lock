@@ -592,7 +592,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "pybotx"
-version = "0.46.0"
+version = "0.47.0"
 description = "A python library for interacting with eXpress BotX API"
 category = "main"
 optional = false
@@ -890,7 +890,7 @@ dev = ["pytest (>=4.6.2)", "black (>=19.3b0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.11"
-content-hash = "a14edad87c685cfc8506638c9cd0a8ea9c27c0bd481df6edd76695060b842069"
+content-hash = "7534280414014f1c9a61da356d2101cca43ef3ce9da8dd5cc91fbba634b4f7ff"
 
 [metadata.files]
 add-trailing-comma = []
