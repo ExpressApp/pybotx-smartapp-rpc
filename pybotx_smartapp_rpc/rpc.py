@@ -45,7 +45,7 @@ class SmartAppRPC:
                 rpc_request,
             )
             if not rpc_response:  # pragma: nocover
-                return None
+                return
 
         await bot.send_smartapp_event(
             bot_id=event.bot.id,
