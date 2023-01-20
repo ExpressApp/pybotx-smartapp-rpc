@@ -62,7 +62,7 @@ python-versions = ">=3.5"
 dev = ["cloudpickle", "coverage[toml] (>=5.0.2)", "furo", "hypothesis", "mypy (>=0.900,!=0.940)", "pre-commit", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "sphinx", "sphinx-notfound-page", "zope.interface"]
 docs = ["furo", "sphinx", "sphinx-notfound-page", "zope.interface"]
 tests = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy (>=0.900,!=0.940)", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "zope.interface"]
-tests-no-zope = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy (>=0.900,!=0.940)", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins"]
+tests_no_zope = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy (>=0.900,!=0.940)", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins"]
 
 [[package]]
 name = "autoflake"
@@ -480,7 +480,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 pipfile = ["pipreqs", "requirementslib"]
 pyproject = ["toml"]
 requirements = ["pip-api", "pipreqs"]
-xdg-home = ["appdirs (>=1.4.0)"]
+xdg_home = ["appdirs (>=1.4.0)"]
 
 [[package]]
 name = "loguru"
@@ -595,7 +595,7 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "pybotx"
-version = "0.51.1"
+version = "0.53.1"
 description = "A python library for interacting with eXpress BotX API"
 category = "main"
 optional = false
@@ -883,7 +883,7 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.11"
-content-hash = "c70bc98718b3a13251d6c5856541ef182453c23cf0bf4dd2b8e2c2530a5ab7fc"
+content-hash = "36a19a5ab3db00f45f1ad1ce50fefdad385a422496dc6faf369e8c6f8c1383f0"
 
 [metadata.files]
 add-trailing-comma = [
@@ -1197,8 +1197,8 @@ pluggy = [
     {file = "pluggy-1.0.0.tar.gz", hash = "sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159"},
 ]
 pybotx = [
-    {file = "pybotx-0.51.1-py3-none-any.whl", hash = "sha256:e78b38d06d0909669f84250a52585c96a30bc96fb36c10aa9e5b63051398efb1"},
-    {file = "pybotx-0.51.1.tar.gz", hash = "sha256:2e4adf156ac1250f5d812753415a783fae0c4211da13c4d6d11ba5c551f0e5e6"},
+    {file = "pybotx-0.53.1-py3-none-any.whl", hash = "sha256:b73d4314b20d67728bba7374e10b6669893700f1acbb2b0f1636126be67d41ad"},
+    {file = "pybotx-0.53.1.tar.gz", hash = "sha256:5c02b85da52019615c335045cae40a72b06efa9cd6358b6708b01f51d35e4b8e"},
 ]
 pycodestyle = [
     {file = "pycodestyle-2.8.0-py2.py3-none-any.whl", hash = "sha256:720f8b39dde8b293825e7ff02c475f3077124006db4f440dcbc9a20b76548a20"},
