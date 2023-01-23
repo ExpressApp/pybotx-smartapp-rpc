@@ -30,6 +30,7 @@ async def test_send_event(
             "type": "smartapp_rpc",
             "result": 42,
         },
+        encrypted=True,
     )
 
 

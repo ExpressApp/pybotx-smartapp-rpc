@@ -49,6 +49,7 @@ async def test_rpc_call_error_raised(
             "errors": [{"reason": "Internal error", "id": "VALUEERROR", "meta": {}}],
             "type": "smartapp_rpc",
         },
+        encrypted=True,
     )
 
 
@@ -94,6 +95,7 @@ async def test_rpc_call_rpc_error_raised(
             ],
             "type": "smartapp_rpc",
         },
+        encrypted=True,
     )
 
 
@@ -143,6 +145,7 @@ async def test_rpc_call_rpc_multiple_errors_raised(
             ],
             "type": "smartapp_rpc",
         },
+        encrypted=True,
     )
 
 
@@ -203,6 +206,7 @@ async def test_rpc_call_exception_handler_called(
             ],
             "type": "smartapp_rpc",
         },
+        encrypted=True,
     )
 
 
@@ -249,4 +253,5 @@ async def test_rpc_call_exception_handler_called_raises_error(
             "errors": [{"reason": "Internal error", "id": "RUNTIMEERROR", "meta": {}}],
             "type": "smartapp_rpc",
         },
+        encrypted=True,
     )

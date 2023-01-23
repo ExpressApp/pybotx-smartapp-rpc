@@ -61,6 +61,7 @@ async def test_rpc_call_rpc_error_returned(
             ],
             "type": "smartapp_rpc",
         },
+        encrypted=True,
     )
 
 
@@ -113,6 +114,7 @@ async def test_rpc_call_with_wrong_args(
             ],
             "type": "smartapp_rpc",
         },
+        encrypted=True,
     )
 
 
@@ -156,6 +158,7 @@ async def test_rpc_call_method_not_found(
             ],
             "type": "smartapp_rpc",
         },
+        encrypted=True,
     )
 
 
@@ -201,6 +204,7 @@ async def test_rpc_call_wrong_rpc_request(
             ],
             "type": "smartapp_rpc",
         },
+        encrypted=True,
     )
 
 
@@ -234,6 +238,7 @@ async def test_rpc_call_without_args(
         ref=ref,
         files=[],
         data={"status": "ok", "result": 1, "type": "smartapp_rpc"},
+        encrypted=True,
     )
 
 
@@ -271,6 +276,7 @@ async def test_rpc_call_with_args(
         ref=ref,
         files=[],
         data={"status": "ok", "result": 3, "type": "smartapp_rpc"},
+        encrypted=True,
     )
 
 
@@ -316,6 +322,7 @@ async def test_rpc_call_acceptiong_and_returning_aliased_model(
         ref=ref,
         files=[],
         data={"status": "ok", "result": {"callResult": 3}, "type": "smartapp_rpc"},
+        encrypted=True,
     )
 
 
@@ -351,4 +358,5 @@ async def test_rpc_call_with_files_return(
         ref=ref,
         files=[document, image],
         data={"status": "ok", "result": 1, "type": "smartapp_rpc"},
+        encrypted=True,
     )
