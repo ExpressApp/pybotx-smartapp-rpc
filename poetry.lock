@@ -119,7 +119,7 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "certifi"
-version = "2022.9.24"
+version = "2022.12.7"
 description = "Python package for providing Mozilla's CA Bundle."
 category = "main"
 optional = false
@@ -595,7 +595,7 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "pybotx"
-version = "0.53.1"
+version = "0.53.2"
 description = "A python library for interacting with eXpress BotX API"
 category = "main"
 optional = false
@@ -604,7 +604,7 @@ python-versions = ">=3.8,<3.11"
 [package.dependencies]
 aiocsv = ">=1.2.3,<1.3.0"
 aiofiles = ">=0.7.0,<0.9.0"
-httpx = ">=0.23.0,<0.24.0"
+httpx = "0.23.0"
 loguru = ">=0.6.0,<0.7.0"
 mypy-extensions = ">=0.2.0,<0.5.0"
 pydantic = ">=1.6.0,<1.11.0"
@@ -883,7 +883,7 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.11"
-content-hash = "36a19a5ab3db00f45f1ad1ce50fefdad385a422496dc6faf369e8c6f8c1383f0"
+content-hash = "b697b8aacc0e67d06cd27e8cb0868bc94030f0024f5c9884804d5c263848388a"
 
 [metadata.files]
 add-trailing-comma = [
@@ -965,8 +965,8 @@ black = [
     {file = "black-22.3.0.tar.gz", hash = "sha256:35020b8886c022ced9282b51b5a875b6d1ab0c387b31a065b84db7c33085ca79"},
 ]
 certifi = [
-    {file = "certifi-2022.9.24-py3-none-any.whl", hash = "sha256:90c1a32f1d68f940488354e36370f6cca89f0f106db09518524c88d6ed83f382"},
-    {file = "certifi-2022.9.24.tar.gz", hash = "sha256:0d9c601124e5a6ba9712dbc60d9c53c21e34f5f641fe83002317394311bdce14"},
+    {file = "certifi-2022.12.7-py3-none-any.whl", hash = "sha256:4ad3232f5e926d6718ec31cfc1fcadfde020920e278684144551c91769c7bc18"},
+    {file = "certifi-2022.12.7.tar.gz", hash = "sha256:35824b4c3a97115964b408844d64aa14db1cc518f6562e8d7261699d1350a9e3"},
 ]
 click = [
     {file = "click-8.1.3-py3-none-any.whl", hash = "sha256:bb4d8133cb15a609f44e8213d9b391b0809795062913b383c62be0ee95b1db48"},
@@ -1197,8 +1197,8 @@ pluggy = [
     {file = "pluggy-1.0.0.tar.gz", hash = "sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159"},
 ]
 pybotx = [
-    {file = "pybotx-0.53.1-py3-none-any.whl", hash = "sha256:b73d4314b20d67728bba7374e10b6669893700f1acbb2b0f1636126be67d41ad"},
-    {file = "pybotx-0.53.1.tar.gz", hash = "sha256:5c02b85da52019615c335045cae40a72b06efa9cd6358b6708b01f51d35e4b8e"},
+    {file = "pybotx-0.53.2-py3-none-any.whl", hash = "sha256:558c90e4e0606f2ab4a056ac22886141f779e3a400d96bfc36d0699107d6b346"},
+    {file = "pybotx-0.53.2.tar.gz", hash = "sha256:34ae972acb4e4a90f417b9830044dcbc210a673cfd85fe27384921218469099e"},
 ]
 pycodestyle = [
     {file = "pycodestyle-2.8.0-py2.py3-none-any.whl", hash = "sha256:720f8b39dde8b293825e7ff02c475f3077124006db4f440dcbc9a20b76548a20"},

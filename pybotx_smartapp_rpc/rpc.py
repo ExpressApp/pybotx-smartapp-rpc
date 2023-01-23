@@ -51,6 +51,7 @@ class SmartAppRPC:
             data=rpc_response.jsonable_dict(),
             ref=event.ref,
             files=rpc_response.files,
+            encrypted=rpc_response.encrypted,
         )
 
     def _insert_exception_middleware(

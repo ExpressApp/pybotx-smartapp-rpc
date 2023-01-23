@@ -26,6 +26,7 @@ class SmartApp:
         self,
         rpc_result: Any,
         files: Optional[List[File]] = None,
+        encrypted: bool = True,
     ) -> None:
         await self.bot.send_smartapp_event(
             bot_id=self.bot_id,
@@ -36,6 +37,7 @@ class SmartApp:
                 "result": rpc_result,
             },
             files=files or [],
+            encrypted=encrypted,
         )
 
     async def send_push(self, counter: int, body: Missing[str] = Undefined) -> None:

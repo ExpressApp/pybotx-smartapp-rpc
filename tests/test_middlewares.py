@@ -80,6 +80,7 @@ async def test_middleware_order(
         ref=ref,
         files=[],
         data={"status": "ok", "result": 1, "type": "smartapp_rpc"},
+        encrypted=True,
     )
 
     assert middleware_order == [1, 2, 3, 4, 5, 6, 7, 8]

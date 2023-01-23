@@ -20,6 +20,7 @@ class RPCResponseBaseModel(BaseModel):
 class RPCResultResponse(Generic[ResultType]):
     result: ResultType
     files: List[File] = field(default_factory=list)
+    encrypted: bool = True
 
     def jsonable_dict(self) -> Dict[str, Any]:
         result: _ResultType = self.result
@@ -37,6 +38,7 @@ class RPCResultResponse(Generic[ResultType]):
 class RPCErrorResponse:
     errors: List[RPCError]
     files: List[File] = field(default_factory=list)
+    encrypted: bool = True
 
     def jsonable_dict(self) -> Dict[str, Any]:
         return {
