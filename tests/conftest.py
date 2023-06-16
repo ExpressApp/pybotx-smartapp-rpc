@@ -69,6 +69,7 @@ def smartapp_event_factory(
             files=[],
             sender=UserSender(
                 huid=uuid4(),
+                udid=uuid4(),
                 ad_login=None,
                 ad_domain=None,
                 username=None,

@@ -1,22 +1,20 @@
 from typing import Callable, Dict, List, Optional, Type
 
+from pydantic import BaseConfig
 from pydantic.error_wrappers import ValidationError
+from pydantic.fields import ModelField
 
 from pybotx_smartapp_rpc.empty_args import EmptyArgs
 from pybotx_smartapp_rpc.middlewares.empty_args_middleware import empty_args_middleware
 from pybotx_smartapp_rpc.models.method import RPCMethod
 from pybotx_smartapp_rpc.models.request import RPCRequest
 from pybotx_smartapp_rpc.models.responses import (
+    ResultType,
     build_invalid_rpc_args_error_response,
     build_method_not_found_error_response,
 )
 from pybotx_smartapp_rpc.smartapp import SmartApp
-from pybotx_smartapp_rpc.typing import (
-    Handler,
-    Middleware,
-    RPCArgsBaseModel,
-    RPCResponse,
-)
+from pybotx_smartapp_rpc.typing import Handler, Middleware, RPCResponse
 
 
 class RPCRouter:
@@ -28,6 +26,7 @@ class RPCRouter:
         self,
         rpc_method_name: str,
         middlewares: Optional[List[Middleware]] = None,
+        return_type: Optional[Type[ResultType]] = None,
     ) -> Callable[[Handler], Handler]:
         if rpc_method_name in self.rpc_methods:
             raise ValueError(f"RPC method {rpc_method_name} already registered!")
@@ -37,16 +36,34 @@ class RPCRouter:
 
         def decorator(handler: Handler) -> Handler:
             annotations = list(handler.__annotations__.values())
-            arguments_class: Optional[Type[RPCArgsBaseModel]] = None
+            arg_field: Optional[ModelField] = None
             if len(annotations) == 3:
                 # __annotations__ contains args and return typing
                 # so len 3 means that method has rpc args
-                arguments_class = annotations[1]
+                arg_field = ModelField(
+                    name=f"Args_{rpc_method_name}",
+                    type_=annotations[1],
+                    model_config=BaseConfig,
+                    class_validators={},
+                )
+
+            if return_type:
+                response_type = return_type
+            else:
+                response_type = annotations[-1].__args__[0]
+
+            response_field = ModelField(
+                name=f"{rpc_method_name}",
+                type_=response_type,
+                model_config=BaseConfig,
+                class_validators={},
+            )
 
             self.rpc_methods[rpc_method_name] = RPCMethod(
                 handler=handler,
-                arguments_class=arguments_class,
                 middlewares=method_and_router_middlewares,
+                response_field=response_field,
+                arguments_field=arg_field,
             )
 
             return handler
@@ -62,9 +79,9 @@ class RPCRouter:
         if not rpc_method:
             return build_method_not_found_error_response(rpc_request.method)
 
-        if rpc_method.arguments_class:
+        if rpc_method.arguments_field:
             try:
-                args = rpc_method.arguments_class(**rpc_request.params)
+                args = rpc_method.arguments_field.type_(**rpc_request.params)
             except ValidationError as invalid_rpc_args_exc:
                 return build_invalid_rpc_args_error_response(invalid_rpc_args_exc)
         else:

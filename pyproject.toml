@@ -11,7 +11,6 @@ python = ">=3.8,<3.11"
 pybotx = ">=0.53.2,<0.56.0"
 
 pydantic = "^1.8.2"
-fastapi = ">=0.70.0,<0.75.0"
 
 [tool.poetry.dev-dependencies]
 add-trailing-comma = "^2.2.1"

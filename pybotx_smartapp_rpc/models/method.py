@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from functools import partial
-from typing import List, Optional, Type
+from typing import List, Optional
+
+from pydantic.fields import ModelField
 
 from pybotx_smartapp_rpc.smartapp import SmartApp
 from pybotx_smartapp_rpc.typing import (
@@ -16,7 +18,8 @@ from pybotx_smartapp_rpc.typing import (
 class RPCMethod:
     handler: Handler
     middlewares: List[Middleware]
-    arguments_class: Optional[Type[RPCArgsBaseModel]] = None
+    response_field: ModelField
+    arguments_field: Optional[ModelField] = None
 
     async def __call__(
         self,
