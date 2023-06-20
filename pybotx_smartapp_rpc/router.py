@@ -1,4 +1,5 @@
-from typing import Callable, Dict, List, Optional, Type
+from enum import Enum
+from typing import Callable, Dict, List, Optional, Type, Union
 
 from pydantic import BaseConfig
 from pydantic.error_wrappers import ValidationError
@@ -18,21 +19,31 @@ from pybotx_smartapp_rpc.typing import Handler, Middleware, RPCResponse
 
 
 class RPCRouter:
-    def __init__(self, middlewares: Optional[List[Middleware]] = None) -> None:
+    def __init__(
+        self,
+        middlewares: Optional[List[Middleware]] = None,
+        tags: Optional[List[Union[str, Enum]]] = None,
+    ) -> None:
         self.rpc_methods: Dict[str, RPCMethod] = {}
         self.middlewares: List[Middleware] = middlewares or []
+        self.tags: List[Union[str, Enum]] = tags or []
 
     def method(
         self,
         rpc_method_name: str,
         middlewares: Optional[List[Middleware]] = None,
         return_type: Optional[Type[ResultType]] = None,
+        tags: Optional[List[Union[str, Enum]]] = None,
     ) -> Callable[[Handler], Handler]:
         if rpc_method_name in self.rpc_methods:
             raise ValueError(f"RPC method {rpc_method_name} already registered!")
 
         method_and_router_middlewares = self.middlewares + (middlewares or [])
         method_and_router_middlewares += [empty_args_middleware]
+
+        current_tags = self.tags.copy()
+        if tags:
+            current_tags.extend(tags)
 
         def decorator(handler: Handler) -> Handler:
             annotations = list(handler.__annotations__.values())
@@ -64,6 +75,7 @@ class RPCRouter:
                 middlewares=method_and_router_middlewares,
                 response_field=response_field,
                 arguments_field=arg_field,
+                tags=current_tags,
             )
 
             return handler

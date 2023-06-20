@@ -45,7 +45,9 @@ def get_openapi_operation_rpc_args(
 
     assert isinstance(body_field, ModelField)
     body_schema, _, _ = field_schema(
-        body_field, model_name_map=model_name_map, ref_prefix=REF_PREFIX,
+        body_field,
+        model_name_map=model_name_map,
+        ref_prefix=REF_PREFIX,
     )
     request_media_type = "application/json"
     required = body_field.required
@@ -68,6 +70,10 @@ def get_openapi_rpc_metadata(*, name: str, route: RPCMethod) -> Dict[str, Any]:
     operation[
         "operationId"
     ] = f"rpc_{name.replace('.', '_').replace(':', '_').replace('_', '_').lower()}"
+
+    if route.tags:
+        operation["tags"] = route.tags
+
     return operation
 
 
@@ -86,7 +92,8 @@ def get_rpc_openapi_path(
     operation = get_openapi_rpc_metadata(name=method_name, route=route)
 
     request_body_oai = get_openapi_operation_rpc_args(
-        body_field=route.arguments_field, model_name_map=model_name_map,
+        body_field=route.arguments_field,
+        model_name_map=model_name_map,
     )
     if request_body_oai:
         operation["requestBody"] = request_body_oai
@@ -103,7 +110,8 @@ def get_rpc_openapi_path(
     )
 
     operation.setdefault("responses", {}).setdefault(status_code, {}).setdefault(
-        "content", {},
+        "content",
+        {},
     ).setdefault("application/json", {})["schema"] = response_schema
     # TODO: RPCError
     # if route.errors:

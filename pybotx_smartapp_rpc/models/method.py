@@ -1,6 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import Enum
 from functools import partial
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic.fields import ModelField
 
@@ -20,6 +21,7 @@ class RPCMethod:
     middlewares: List[Middleware]
     response_field: ModelField
     arguments_field: Optional[ModelField] = None
+    tags: List[Union[str, Enum]] = field(default_factory=list)
 
     async def __call__(
         self,
