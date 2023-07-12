@@ -35,6 +35,9 @@ def get_rpc_flat_models_from_routes(
     responses_from_routes: List[ModelField] = []
 
     for method_name in router.rpc_methods.keys():
+        if not router.rpc_methods[method_name].include_in_schema:
+            continue
+
         if router.rpc_methods[method_name].arguments_field:
             body_fields_from_routes.append(
                 router.rpc_methods[method_name].arguments_field,  # type: ignore

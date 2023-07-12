@@ -24,6 +24,7 @@ class RPCMethod:
     tags: List[Union[str, Enum]] = field(default_factory=list)
     errors: Optional[dict[str, dict]] = None
     errors_models: Optional[dict[str, ModelField]] = None
+    include_in_schema: bool = True
 
     async def __call__(
         self,

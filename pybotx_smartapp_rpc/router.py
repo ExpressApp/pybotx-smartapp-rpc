@@ -24,10 +24,12 @@ class RPCRouter:
         self,
         middlewares: Optional[List[Middleware]] = None,
         tags: Optional[List[Union[str, Enum]]] = None,
+        include_in_schema: bool = True,
     ) -> None:
         self.rpc_methods: Dict[str, RPCMethod] = {}
         self.middlewares: List[Middleware] = middlewares or []
         self.tags: List[Union[str, Enum]] = tags or []
+        self.include_in_schema = include_in_schema
 
     def method(
         self,
@@ -36,6 +38,7 @@ class RPCRouter:
         return_type: Optional[Type[ResultType]] = None,
         tags: Optional[List[Union[str, Enum]]] = None,
         errors: Optional[List[Type[RPCError]]] = None,
+        include_in_schema: bool = True,
     ) -> Callable[[Handler], Handler]:
         if rpc_method_name in self.rpc_methods:
             raise ValueError(f"RPC method {rpc_method_name} already registered!")
@@ -100,6 +103,7 @@ class RPCRouter:
                 tags=current_tags,
                 errors=errors_fields,
                 errors_models=errors_models,
+                include_in_schema=include_in_schema and self.include_in_schema,
             )
 
             return handler
