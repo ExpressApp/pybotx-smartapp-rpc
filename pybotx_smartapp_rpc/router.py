@@ -15,7 +15,6 @@ from pybotx_smartapp_rpc.models.responses import (
     build_invalid_rpc_args_error_response,
     build_method_not_found_error_response,
 )
-from pybotx_smartapp_rpc.openapi_utils import create_response_field
 from pybotx_smartapp_rpc.smartapp import SmartApp
 from pybotx_smartapp_rpc.typing import Handler, Middleware, RPCResponse
 
@@ -83,9 +82,11 @@ class RPCRouter:
                     if error.__fields__["id"].default
                 }
                 errors_models = {
-                    error.__fields__["id"].default: create_response_field(
-                        error.__name__,
-                        error,
+                    error.__fields__["id"].default: ModelField(
+                        name=error.__name__,
+                        type_=error,
+                        class_validators=None,
+                        model_config=BaseConfig,
                     )
                     for error in errors
                     if error.__fields__["id"].default

@@ -1,9 +1,8 @@
-import functools
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
 from pydantic import BaseModel
-from pydantic.fields import FieldInfo, ModelField
+from pydantic.fields import ModelField
 from pydantic.schema import field_schema, get_flat_models_from_fields
 
 from pybotx_smartapp_rpc import RPCRouter
@@ -27,32 +26,6 @@ def deep_dict_update(main_dict: Dict[Any, Any], update_dict: Dict[Any, Any]) -> 
             deep_dict_update(main_dict[key], update_dict[key])
         else:
             main_dict[key] = update_dict[key]
-
-
-def create_response_field(
-    name: str,
-    type_: Type[Any],
-) -> ModelField:
-    field_info = FieldInfo(None)
-
-    response_field = functools.partial(
-        ModelField,
-        name=name,
-        type_=type_,
-        class_validators={},
-        default=None,
-        required=None,
-        model_config=None,
-        alias=None,
-    )
-
-    try:
-        return response_field(field_info=field_info)
-    except RuntimeError:
-        raise OpenAPIError(
-            f"Invalid args for response field! Hint: check that {type_} "
-            "is a valid pydantic field type",
-        )
 
 
 def get_rpc_flat_models_from_routes(
@@ -107,12 +80,12 @@ def get_openapi_operation_rpc_args(
 def get_openapi_rpc_metadata(*, name: str, route: RPCMethod) -> Dict[str, Any]:
     operation: Dict[str, Any] = {}
     operation["summary"] = (
-        name.replace(".", " ").replace(":", " ").replace("_", " ").title()
+        route.handler.__name__.replace(".", " ").replace("_", " ").title()
     )
     operation["description"] = route.handler.__doc__
     operation[
         "operationId"
-    ] = f"rpc_{name.replace('.', '_').replace(':', '_').replace('_', '_').lower()}"
+    ] = f"rpc_{name.replace('.', '_').replace(':', '_').replace('-', '_').lower()}"
 
     if route.tags:
         operation["tags"] = route.tags
@@ -126,6 +99,7 @@ def get_rpc_openapi_path(
     route: RPCMethod,
     model_name_map: Dict[Union[Type[BaseModel], Type[Enum]], str],
 ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    """Taken from FastAPI."""
     path = {}
     definitions: Dict[str, Any] = {}
 
@@ -138,6 +112,7 @@ def get_rpc_openapi_path(
     if request_body_oai:
         operation["requestBody"] = request_body_oai
 
+    # - Successful response -
     status_code = "ok"
 
     operation.setdefault("responses", {}).setdefault(status_code, {})[
@@ -154,7 +129,7 @@ def get_rpc_openapi_path(
         {},
     ).setdefault("application/json", {})["schema"] = response_schema
 
-    # TODO: RPCError
+    # - Errors -
     if route.errors:
         operation_errors = operation.setdefault("responses", {})
         for (  # noqa: WPS352
