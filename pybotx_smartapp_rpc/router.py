@@ -5,6 +5,7 @@ from pydantic import BaseConfig
 from pydantic.error_wrappers import ValidationError
 from pydantic.fields import ModelField
 
+from pybotx_smartapp_rpc import RPCError
 from pybotx_smartapp_rpc.empty_args import EmptyArgs
 from pybotx_smartapp_rpc.middlewares.empty_args_middleware import empty_args_middleware
 from pybotx_smartapp_rpc.models.method import RPCMethod
@@ -14,6 +15,7 @@ from pybotx_smartapp_rpc.models.responses import (
     build_invalid_rpc_args_error_response,
     build_method_not_found_error_response,
 )
+from pybotx_smartapp_rpc.openapi_utils import create_response_field
 from pybotx_smartapp_rpc.smartapp import SmartApp
 from pybotx_smartapp_rpc.typing import Handler, Middleware, RPCResponse
 
@@ -34,6 +36,7 @@ class RPCRouter:
         middlewares: Optional[List[Middleware]] = None,
         return_type: Optional[Type[ResultType]] = None,
         tags: Optional[List[Union[str, Enum]]] = None,
+        errors: Optional[List[Type[RPCError]]] = None,
     ) -> Callable[[Handler], Handler]:
         if rpc_method_name in self.rpc_methods:
             raise ValueError(f"RPC method {rpc_method_name} already registered!")
@@ -69,6 +72,24 @@ class RPCRouter:
                 model_config=BaseConfig,
                 class_validators={},
             )
+            errors_fields: dict | None = None
+            errors_models = {}
+            if errors:
+                errors_fields = {
+                    error.__fields__["id"].default: {
+                        "description": error.__fields__["reason"].default,
+                    }
+                    for error in errors
+                    if error.__fields__["id"].default
+                }
+                errors_models = {
+                    error.__fields__["id"].default: create_response_field(
+                        error.__name__,
+                        error,
+                    )
+                    for error in errors
+                    if error.__fields__["id"].default
+                }
 
             self.rpc_methods[rpc_method_name] = RPCMethod(
                 handler=handler,
@@ -76,6 +97,8 @@ class RPCRouter:
                 response_field=response_field,
                 arguments_field=arg_field,
                 tags=current_tags,
+                errors=errors_fields,
+                errors_models=errors_models,
             )
 
             return handler

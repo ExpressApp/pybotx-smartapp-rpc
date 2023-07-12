@@ -22,6 +22,8 @@ class RPCMethod:
     response_field: ModelField
     arguments_field: Optional[ModelField] = None
     tags: List[Union[str, Enum]] = field(default_factory=list)
+    errors: Optional[dict[str, dict]] = None
+    errors_models: Optional[dict[str, ModelField]] = None
 
     async def __call__(
         self,

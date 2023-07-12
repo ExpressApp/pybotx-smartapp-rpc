@@ -1,4 +1,4 @@
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from typing import Any, Dict, Generic, List, TypeVar, Union
 
 from pybotx import File
@@ -44,7 +44,7 @@ class RPCErrorResponse:
         return {
             "status": "error",
             "type": "smartapp_rpc",
-            "errors": [asdict(error) for error in self.errors],
+            "errors": [error.dict() for error in self.errors],
         }
 
 
