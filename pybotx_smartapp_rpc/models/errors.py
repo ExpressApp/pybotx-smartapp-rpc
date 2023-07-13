@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 from pydantic import BaseModel, Field
 
@@ -6,4 +6,4 @@ from pydantic import BaseModel, Field
 class RPCError(BaseModel):
     reason: str
     id: str
-    meta: Dict[str, Any] = Field(default_factory=dict)
+    meta: Union[Dict[str, Any], BaseModel] = Field(default_factory=dict)

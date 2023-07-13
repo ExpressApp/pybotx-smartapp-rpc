@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Callable, Dict, List, Optional, Type, Union
+from typing import Callable, Dict, List, Optional, Tuple, Type, Union
 
 from pydantic import BaseConfig
 from pydantic.error_wrappers import ValidationError
@@ -63,42 +63,12 @@ class RPCRouter:
                     class_validators={},
                 )
 
-            if return_type:
-                response_type = return_type
-            else:
-                response_type = annotations[-1].__args__[0]
-
-            response_field = ModelField(
-                name=f"{rpc_method_name}",
-                type_=response_type,
-                model_config=BaseConfig,
-                class_validators={},
-            )
-            errors_fields: dict | None = None
-            errors_models = {}
-            if errors:
-                errors_fields = {
-                    error.__fields__["id"].default: {
-                        "description": error.__fields__["reason"].default,
-                    }
-                    for error in errors
-                    if error.__fields__["id"].default
-                }
-                errors_models = {
-                    error.__fields__["id"].default: ModelField(
-                        name=error.__name__,
-                        type_=error,
-                        class_validators=None,
-                        model_config=BaseConfig,
-                    )
-                    for error in errors
-                    if error.__fields__["id"].default
-                }
+            errors_fields, errors_models = self._get_error_fields_and_models(errors)
 
             self.rpc_methods[rpc_method_name] = RPCMethod(
                 handler=handler,
                 middlewares=method_and_router_middlewares,
-                response_field=response_field,
+                response_field=self._get_response_field(return_type, annotations),
                 arguments_field=arg_field,
                 tags=current_tags,
                 errors=errors_fields,
@@ -143,3 +113,50 @@ class RPCRouter:
         for rpc_method_name, rpc_method in router.rpc_methods.items():
             rpc_method.middlewares = self.middlewares + rpc_method.middlewares
             self.rpc_methods[rpc_method_name] = rpc_method
+
+    def _get_response_field(
+        self,
+        return_type: Optional[Type[ResultType]],
+        annotations: list,
+    ) -> ModelField:
+        if return_type:
+            response_type = return_type
+        else:
+            if hasattr(annotations[-1], "__args__"):  # noqa: WPS421
+                response_type = annotations[-1].__args__[0]
+            else:
+                response_type = str  # type: ignore
+
+        return ModelField(
+            name=f"{response_type.__name__}",
+            type_=response_type,
+            model_config=BaseConfig,
+            class_validators={},
+        )
+
+    def _get_error_fields_and_models(
+        self,
+        errors: Optional[List[Type[RPCError]]],
+    ) -> Tuple[Optional[dict], dict]:
+        errors_fields = {}
+        errors_models = {}
+        if errors:
+            errors_fields = {
+                error.__fields__["id"].default: {
+                    "description": error.__fields__["reason"].default,
+                }
+                for error in errors
+                if error.__fields__["id"].default
+            }
+            errors_models = {
+                error.__fields__["id"].default: ModelField(
+                    name=error.__name__,
+                    type_=error,
+                    class_validators=None,
+                    model_config=BaseConfig,
+                )
+                for error in errors
+                if error.__fields__["id"].default
+            }
+
+        return errors_fields, errors_models
