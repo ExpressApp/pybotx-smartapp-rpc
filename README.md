@@ -173,7 +173,7 @@ smartapp = SmartAppRPC(..., exception_handlers={KeyError: key_error_handler})
 ### Swagger documentation
 Можно подключить rpc роутеры к авто генерируемой документации FastAPI и использовать
 документацию в Swagger. Для этого необходимо переопределить функцию для генерации 
-OpenAPI съемы:
+OpenAPI схемы:
 ```python
 from fastapi import FastAPI
 
