@@ -1,9 +1,9 @@
-from dataclasses import dataclass, field
-from typing import Any, Dict
+from typing import Any, Dict, Union
+
+from pydantic import BaseModel, Field
 
 
-@dataclass
-class RPCError:
+class RPCError(BaseModel):
     reason: str
     id: str
-    meta: Dict[str, Any] = field(default_factory=dict)
+    meta: Union[Dict[str, Any], BaseModel] = Field(default_factory=dict)

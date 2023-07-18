@@ -54,6 +54,10 @@ class SmartAppRPC:
             encrypted=rpc_response.encrypted,
         )
 
+    @property
+    def router(self) -> RPCRouter:
+        return self._router
+
     def _insert_exception_middleware(
         self,
         user_exception_handlers: ExceptionHandlerDict,

@@ -1,6 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import Enum
 from functools import partial
-from typing import List, Optional, Type
+from typing import Dict, List, Optional, Union
+
+from pydantic.fields import ModelField
 
 from pybotx_smartapp_rpc.smartapp import SmartApp
 from pybotx_smartapp_rpc.typing import (
@@ -16,7 +19,12 @@ from pybotx_smartapp_rpc.typing import (
 class RPCMethod:
     handler: Handler
     middlewares: List[Middleware]
-    arguments_class: Optional[Type[RPCArgsBaseModel]] = None
+    response_field: ModelField
+    arguments_field: Optional[ModelField] = None
+    tags: List[Union[str, Enum]] = field(default_factory=list)
+    errors: Optional[Dict[str, dict]] = None
+    errors_models: Optional[Dict[str, ModelField]] = None
+    include_in_schema: bool = True
 
     async def __call__(
         self,
