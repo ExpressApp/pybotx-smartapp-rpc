@@ -1,5 +1,5 @@
 from types import SimpleNamespace
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from pybotx import Bot, File, SmartAppEvent
@@ -46,4 +46,22 @@ class SmartApp:
             chat_id=self.chat_id,
             smartapp_counter=counter,
             body=body,
+        )
+
+    async def send_push_v4(
+        self,
+        title: str,
+        body: str,
+        meta: Missing[Dict[str, Any]] = Undefined,
+        wait_callback: bool = True,
+        callback_timeout: Optional[float] = None,
+    ) -> UUID:
+        return await self.bot.send_smartapp_notification_v4(
+            bot_id=self.bot_id,
+            group_chat_id=self.chat_id,
+            title=title,
+            body=body,
+            meta=meta,
+            wait_callback=wait_callback,
+            callback_timeout=callback_timeout,
         )
