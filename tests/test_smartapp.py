@@ -53,3 +53,27 @@ async def test_send_push(
         smartapp_counter=42,
         body="Pushed!",
     )
+
+
+async def test_send_custom_push(
+    bot: AsyncMock,
+    bot_id: UUID,
+    chat_id: UUID,
+) -> None:
+    # - Arrange -
+    smartapp = SmartApp(bot, bot_id, chat_id)
+
+    # - Act -
+    await smartapp.send_custom_push("test", "test", {"message": "ping"})
+
+    # - Assert -
+    assert len(bot.method_calls) == 1
+    bot.send_smartapp_custom_notification.assert_awaited_once_with(
+        bot_id=bot_id,
+        group_chat_id=chat_id,
+        title="test",
+        body="test",
+        meta={"message": "ping"},
+        wait_callback=True,
+        callback_timeout=None,
+    )
