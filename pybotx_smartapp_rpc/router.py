@@ -1,3 +1,4 @@
+import inspect
 from enum import Enum
 from typing import Callable, Dict, List, Optional, Tuple, Type, Union
 
@@ -51,24 +52,16 @@ class RPCRouter:
             current_tags.extend(tags)
 
         def decorator(handler: Handler) -> Handler:
-            annotations = list(handler.__annotations__.values())
-            arg_field: Optional[ModelField] = None
-            if len(annotations) == 3:
-                # __annotations__ contains args and return typing
-                # so len 3 means that method has rpc args
-                arg_field = ModelField(
-                    name=f"Args_{rpc_method_name}",
-                    type_=annotations[1],
-                    model_config=BaseConfig,
-                    class_validators={},
-                )
-
+            arg_field, response_field = self._get_args_and_return_field(
+                handler,
+                return_type,
+            )
             errors_fields, errors_models = self._get_error_fields_and_models(errors)
 
             self.rpc_methods[rpc_method_name] = RPCMethod(
                 handler=handler,
                 middlewares=method_and_router_middlewares,
-                response_field=self._get_response_field(return_type, annotations),
+                response_field=response_field,
                 arguments_field=arg_field,
                 tags=current_tags,
                 errors=errors_fields,
@@ -114,25 +107,40 @@ class RPCRouter:
             rpc_method.middlewares = self.middlewares + rpc_method.middlewares
             self.rpc_methods[rpc_method_name] = rpc_method
 
-    def _get_response_field(
+    def _get_args_and_return_field(
         self,
-        return_type: Optional[Type[ResultType]],
-        annotations: list,
-    ) -> ModelField:
+        handler: Handler,
+        return_type: Optional[Type[ResultType]] = None,
+    ) -> Tuple[Optional[ModelField], ModelField]:
+        signature = inspect.signature(handler)
+        return_annotation = signature.return_annotation
+        if hasattr(return_annotation, "__args__"):  # noqa: WPS421
+            response_type = return_annotation.__args__[0]
+        else:
+            response_type = None
+
         if return_type:
             response_type = return_type
-        else:
-            if hasattr(annotations[-1], "__args__"):  # noqa: WPS421
-                response_type = annotations[-1].__args__[0]
-            else:
-                response_type = str  # type: ignore
 
-        return ModelField(
-            name=f"{response_type.__name__}",
+        response_field = ModelField(
+            name=f"Response_{handler.__name__}",
             type_=response_type,
             model_config=BaseConfig,
             class_validators={},
         )
+
+        args_annotations = [arg[1].annotation for arg in signature.parameters.items()]
+        if len(args_annotations) >= 2:
+            arg_field = ModelField(
+                name=str(args_annotations[1].__name__),
+                type_=args_annotations[1],
+                model_config=BaseConfig,
+                class_validators={},
+            )
+        else:
+            arg_field = None  # type: ignore
+
+        return arg_field, response_field
 
     def _get_error_fields_and_models(
         self,
@@ -143,7 +151,7 @@ class RPCRouter:
         if errors:
             errors_fields = {
                 error.__fields__["id"].default: {
-                    "description": error.__fields__["reason"].default,
+                    "description": error.__doc__ or error.__fields__["reason"].default,
                 }
                 for error in errors
                 if error.__fields__["id"].default
