@@ -1,3 +1,4 @@
+import pytest
 from pydantic import BaseModel
 from pydantic.schema import get_model_name_map
 
@@ -11,6 +12,7 @@ from pybotx_smartapp_rpc import (
 from pybotx_smartapp_rpc.openapi_utils import (
     deep_dict_update,
     get_rpc_flat_models_from_routes,
+    get_rpc_model_definitions,
     get_rpc_openapi_path,
 )
 
@@ -28,9 +30,15 @@ class Meta(BaseModel):
 
 
 class UserNotFound(RPCError):
+    """Error description."""
+
     id = "UserNotFound"
     reason = "User not found in system"
     meta: Meta
+
+
+class OneUserNotFound(UserNotFound):
+    id = "OneUserNotFound"
 
 
 def test__deep_dict_update() -> None:
@@ -82,10 +90,11 @@ async def test_get_rpc_openapi_path__without_args() -> None:
     rpc_model_name_map = get_model_name_map(get_rpc_flat_models_from_routes(rpc))
 
     # - Act -
-    path, path_definitions = get_rpc_openapi_path(
+    path = get_rpc_openapi_path(
         method_name="get_api_version",
         route=rpc.rpc_methods["get_api_version"],
         model_name_map=rpc_model_name_map,
+        security_scheme={"auth": []},
     )
 
     assert path == {
@@ -96,13 +105,17 @@ async def test_get_rpc_openapi_path__without_args() -> None:
                 "ok": {
                     "content": {
                         "application/json": {
-                            "schema": {"title": "Int", "type": "integer"}
+                            "schema": {
+                                "title": "Response Get Api Version",
+                                "type": "integer",
+                            }
                         }
                     },
                     "description": "Successful response. **result** field:",
                 }
             },
             "summary": "Get Api Version",
+            "security": [{"auth": []}],
         }
     }
 
@@ -111,7 +124,7 @@ async def test_collect_rpc_method_exists__with_errors() -> None:
     # - Arrange -
     rpc = RPCRouter(tags=["rpc"])
 
-    @rpc.method("get_user", errors=[UserNotFound], tags=["user"])
+    @rpc.method("get_user", errors=[UserNotFound, OneUserNotFound], tags=["user"])
     async def get_api_version(
         smartapp: SmartApp, rpc_args: UserArgs
     ) -> RPCResultResponse[int]:
@@ -123,7 +136,7 @@ async def test_collect_rpc_method_exists__with_errors() -> None:
     )
 
     # - Act -
-    path, path_definitions = get_rpc_openapi_path(
+    path = get_rpc_openapi_path(
         method_name="get_user",
         route=rpc.rpc_methods["get_user"],
         model_name_map=rpc_model_name_map,
@@ -148,7 +161,10 @@ async def test_collect_rpc_method_exists__with_errors() -> None:
                     "description": "Successful response. **result** field:",
                     "content": {
                         "application/json": {
-                            "schema": {"title": "Int", "type": "integer"}
+                            "schema": {
+                                "title": "Response Get Api Version",
+                                "type": "integer",
+                            }
                         }
                     },
                 },
@@ -158,8 +174,68 @@ async def test_collect_rpc_method_exists__with_errors() -> None:
                             "schema": {"$ref": "#/components/schemas/UserNotFound"}
                         }
                     },
-                    "description": "Reason: *User not found in system*. **error** object:",
+                    "description": "**Error**: Error description.",
+                },
+                "OneUserNotFound": {
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/OneUserNotFound"}
+                        }
+                    },
+                    "description": "**Error**: User not found in system",
                 },
             },
         }
+    }
+
+
+@pytest.mark.wip
+async def test_get_rpc_model_defenition() -> None:
+    # - Arrange -
+    rpc = RPCRouter(tags=["rpc"])
+
+    @rpc.method("get_user", errors=[UserNotFound], tags=["user"])
+    async def get_api_version(
+        smartapp: SmartApp, rpc_args: UserArgs
+    ) -> RPCResultResponse[int]:
+        return RPCResultResponse(result=42)
+
+    smartapp_rpc = SmartAppRPC(routers=[rpc])
+
+    flat_rpc_models = get_rpc_flat_models_from_routes(smartapp_rpc.router)
+    rpc_model_name_map = get_model_name_map(flat_rpc_models)
+
+    # - Act -
+    rpc_definitions = get_rpc_model_definitions(
+        flat_models=flat_rpc_models, model_name_map=rpc_model_name_map
+    )
+
+    assert rpc_definitions == {
+        "Meta": {
+            "properties": {"user_id": {"title": "User Id", "type": "integer"}},
+            "required": ["user_id"],
+            "title": "Meta",
+            "type": "object",
+        },
+        "UserArgs": {
+            "properties": {"id": {"title": "Id", "type": "integer"}},
+            "required": ["id"],
+            "title": "UserArgs",
+            "type": "object",
+        },
+        "UserNotFound": {
+            "description": "Error description.",
+            "properties": {
+                "id": {"default": "UserNotFound", "title": "Id", "type": "string"},
+                "meta": {"$ref": "#/components/schemas/Meta"},
+                "reason": {
+                    "default": "User not found in " "system",
+                    "title": "Reason",
+                    "type": "string",
+                },
+            },
+            "required": ["meta"],
+            "title": "UserNotFound",
+            "type": "object",
+        },
     }
