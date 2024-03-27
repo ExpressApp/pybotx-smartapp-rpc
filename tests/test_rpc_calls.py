@@ -104,12 +104,12 @@ async def test_rpc_call_with_wrong_args(
                 {
                     "reason": "value is not a valid integer",
                     "id": "TYPE_ERROR",
-                    "meta": {"field": "first"},
+                    "meta": {"location": ("first",)},
                 },
                 {
                     "reason": "field required",
                     "id": "VALUE_ERROR",
-                    "meta": {"field": "second"},
+                    "meta": {"location": ("second",)},
                 },
             ],
             "type": "smartapp_rpc",

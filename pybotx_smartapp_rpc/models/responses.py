@@ -71,7 +71,7 @@ def build_invalid_rpc_args_error_response(
             RPCError(
                 reason=error["msg"],
                 id=error["type"].split(".")[0].upper(),
-                meta={"field": error["loc"][0]},
+                meta={"location": error["loc"]},
             )
             for error in exc.errors()
         ],
