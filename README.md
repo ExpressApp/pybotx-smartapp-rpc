@@ -42,12 +42,23 @@ from anywhere import methods
 ...
 smartapp = SmartAppRPC(routers=[methods.rpc])
 ```
-4. Сделайте хендлер для `smartapp_event` и вызывайте в нем хендлер библиотеки
-``` python
-@collector.smartapp_event
-async def handle_smartapp_event(event: SmartAppEvent, bot: Bot) -> None:
-    await smartapp.handle_smartapp_event(event, bot)
-```
+4. Сделайте хендлер для `smartapp_event` и вызывайте в нем хендлер библиотеки:  
+    a. Aсинхронный подход:
+    ``` python
+    @collector.smartapp_event
+    async def handle_smartapp_event(event: SmartAppEvent, bot: Bot) -> None:
+        await smartapp.handle_smartapp_event(event, bot)
+    ```
+   б. Синхронный подход:
+    ``` python
+   from pybotx import SyncSmartAppEventResponsePayload
+   
+   ...
+   
+    @collector.sync_smartapp_event
+    async def handle_sync_smartapp_event(event: SmartAppEvent, bot: Bot) -> SyncSmartAppEventResponsePayload:
+        return await smartapp.handle_sync_smartapp_event(event, bot)
+    ```
 
 ## Продвинутая работа с библиотекой
 * В `RPCResultResponse` можно передавать `botx.File` файлы.
