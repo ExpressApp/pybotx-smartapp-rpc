@@ -2,7 +2,7 @@ from typing import Callable
 from unittest.mock import AsyncMock
 from uuid import UUID
 
-from pybotx import Document, Image, SmartAppEvent, SyncSmartAppRequestResponsePayload
+from pybotx import Document, Image, SmartAppEvent, SyncSmartAppEventResponsePayload
 from pybotx.missing import Undefined
 from pydantic import Field
 
@@ -363,7 +363,7 @@ async def test_rpc_call_with_files_return(
     )
 
 
-async def test_handle_sync_smartapp_request_without_args(
+async def test_handle_sync_smartapp_event_without_args(
     smartapp_event_factory: Callable[..., SmartAppEvent],
     bot: AsyncMock,
     bot_id: UUID,
@@ -380,13 +380,13 @@ async def test_handle_sync_smartapp_request_without_args(
     smartapp_rpc = SmartAppRPC(routers=[rpc])
 
     # - Act -
-    response = await smartapp_rpc.handle_sync_smartapp_request(
+    response = await smartapp_rpc.handle_sync_smartapp_event(
         smartapp_event_factory("get_api_version"),
         bot,
     )
 
     # - Assert -
-    assert response == SyncSmartAppRequestResponsePayload(
+    assert response == SyncSmartAppEventResponsePayload(
         ref=ref,
         smartapp_id=bot_id,
         group_chat_id=chat_id,
@@ -398,7 +398,7 @@ async def test_handle_sync_smartapp_request_without_args(
     )
 
 
-async def test_handle_sync_smartapp_request_rpc_error_returned(
+async def test_handle_sync_smartapp_event_rpc_error_returned(
     smartapp_event_factory: Callable[..., SmartAppEvent],
     bot: AsyncMock,
     bot_id: UUID,
@@ -419,13 +419,13 @@ async def test_handle_sync_smartapp_request_rpc_error_returned(
     smartapp_rpc = SmartAppRPC(routers=[rpc])
 
     # - Act -
-    response = await smartapp_rpc.handle_sync_smartapp_request(
+    response = await smartapp_rpc.handle_sync_smartapp_event(
         smartapp_event_factory("get_api_version"),
         bot,
     )
 
     # - Assert -
-    assert response == SyncSmartAppRequestResponsePayload(
+    assert response == SyncSmartAppEventResponsePayload(
         ref=ref,
         smartapp_id=bot_id,
         group_chat_id=chat_id,
@@ -447,7 +447,7 @@ async def test_handle_sync_smartapp_request_rpc_error_returned(
     )
 
 
-async def test_handle_sync_smartapp_request_with_wrong_args(
+async def test_handle_sync_smartapp_event_with_wrong_args(
     smartapp_event_factory: Callable[..., SmartAppEvent],
     bot: AsyncMock,
     bot_id: UUID,
@@ -468,13 +468,13 @@ async def test_handle_sync_smartapp_request_with_wrong_args(
     smartapp_rpc = SmartAppRPC(routers=[rpc])
 
     # - Act -
-    response = await smartapp_rpc.handle_sync_smartapp_request(
+    response = await smartapp_rpc.handle_sync_smartapp_event(
         smartapp_event_factory("sum", params={"first": "abc", "third": 2}),
         bot,
     )
 
     # - Assert -
-    assert response == SyncSmartAppRequestResponsePayload(
+    assert response == SyncSmartAppEventResponsePayload(
         ref=ref,
         smartapp_id=bot_id,
         group_chat_id=chat_id,
@@ -501,7 +501,7 @@ async def test_handle_sync_smartapp_request_with_wrong_args(
     )
 
 
-async def test_handle_sync_smartapp_request_wrong_rpc_request(
+async def test_handle_sync_smartapp_event_wrong_rpc_request(
     smartapp_event_factory: Callable[..., SmartAppEvent],
     bot: AsyncMock,
     bot_id: UUID,
@@ -520,13 +520,13 @@ async def test_handle_sync_smartapp_request_wrong_rpc_request(
     del smartapp_event.data["method"]
 
     # - Act -
-    response = await smartapp_rpc.handle_sync_smartapp_request(
+    response = await smartapp_rpc.handle_sync_smartapp_event(
         smartapp_event,
         bot,
     )
 
     # - Assert -
-    assert response == SyncSmartAppRequestResponsePayload(
+    assert response == SyncSmartAppEventResponsePayload(
         ref=ref,
         smartapp_id=bot_id,
         group_chat_id=chat_id,
