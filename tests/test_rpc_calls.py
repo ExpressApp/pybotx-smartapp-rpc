@@ -2,7 +2,8 @@ from typing import Callable
 from unittest.mock import AsyncMock
 from uuid import UUID
 
-from pybotx import Document, Image, SmartAppEvent
+from pybotx import Document, Image, SmartAppEvent, SyncSmartAppRequestResponsePayload
+from pybotx.missing import Undefined
 from pydantic import Field
 
 from pybotx_smartapp_rpc import (
@@ -358,5 +359,190 @@ async def test_rpc_call_with_files_return(
         ref=ref,
         files=[document, image],
         data={"status": "ok", "result": 1, "type": "smartapp_rpc"},
+        encrypted=True,
+    )
+
+
+async def test_handle_sync_smartapp_request_without_args(
+    smartapp_event_factory: Callable[..., SmartAppEvent],
+    bot: AsyncMock,
+    bot_id: UUID,
+    chat_id: UUID,
+    ref: UUID,
+) -> None:
+    # - Arrange -
+    rpc = RPCRouter()
+
+    @rpc.method("get_api_version")
+    async def get_api_version(smartapp: SmartApp) -> RPCResultResponse[int]:
+        return RPCResultResponse(result=1)
+
+    smartapp_rpc = SmartAppRPC(routers=[rpc])
+
+    # - Act -
+    response = await smartapp_rpc.handle_sync_smartapp_request(
+        smartapp_event_factory("get_api_version"),
+        bot,
+    )
+
+    # - Assert -
+    assert response == SyncSmartAppRequestResponsePayload(
+        ref=ref,
+        smartapp_id=bot_id,
+        group_chat_id=chat_id,
+        data={"status": "ok", "result": 1, "type": "smartapp_rpc"},
+        opts={},
+        smartapp_api_version=1,
+        async_files=Undefined,
+        encrypted=True,
+    )
+
+
+async def test_handle_sync_smartapp_request_rpc_error_returned(
+    smartapp_event_factory: Callable[..., SmartAppEvent],
+    bot: AsyncMock,
+    bot_id: UUID,
+    chat_id: UUID,
+    ref: UUID,
+) -> None:
+    # - Arrange -
+    rpc = RPCRouter()
+
+    @rpc.method("get_api_version")
+    async def get_api_version(smartapp: SmartApp) -> RPCErrorResponse:
+        return RPCErrorResponse(
+            errors=[
+                RPCError(reason="Api version undefined", id="UNDEFINED_API_VERSION"),
+            ],
+        )
+
+    smartapp_rpc = SmartAppRPC(routers=[rpc])
+
+    # - Act -
+    response = await smartapp_rpc.handle_sync_smartapp_request(
+        smartapp_event_factory("get_api_version"),
+        bot,
+    )
+
+    # - Assert -
+    assert response == SyncSmartAppRequestResponsePayload(
+        ref=ref,
+        smartapp_id=bot_id,
+        group_chat_id=chat_id,
+        data={
+            "status": "error",
+            "errors": [
+                {
+                    "reason": "Api version undefined",
+                    "id": "UNDEFINED_API_VERSION",
+                    "meta": {},
+                },
+            ],
+            "type": "smartapp_rpc",
+        },
+        opts={},
+        smartapp_api_version=1,
+        async_files=Undefined,
+        encrypted=True,
+    )
+
+
+async def test_handle_sync_smartapp_request_with_wrong_args(
+    smartapp_event_factory: Callable[..., SmartAppEvent],
+    bot: AsyncMock,
+    bot_id: UUID,
+    chat_id: UUID,
+    ref: UUID,
+) -> None:
+    # - Arrange -
+    rpc = RPCRouter()
+
+    class SumArgs(RPCArgsBaseModel):
+        first: int
+        second: int
+
+    @rpc.method("sum")
+    async def sum_handler(smartapp: SmartApp, args: SumArgs) -> RPCResultResponse[int]:
+        return RPCResultResponse(result=args.first + args.second)
+
+    smartapp_rpc = SmartAppRPC(routers=[rpc])
+
+    # - Act -
+    response = await smartapp_rpc.handle_sync_smartapp_request(
+        smartapp_event_factory("sum", params={"first": "abc", "third": 2}),
+        bot,
+    )
+
+    # - Assert -
+    assert response == SyncSmartAppRequestResponsePayload(
+        ref=ref,
+        smartapp_id=bot_id,
+        group_chat_id=chat_id,
+        data={
+            "status": "error",
+            "errors": [
+                {
+                    "reason": "value is not a valid integer",
+                    "id": "TYPE_ERROR",
+                    "meta": {"location": ("first",)},
+                },
+                {
+                    "reason": "field required",
+                    "id": "VALUE_ERROR",
+                    "meta": {"location": ("second",)},
+                },
+            ],
+            "type": "smartapp_rpc",
+        },
+        opts={},
+        smartapp_api_version=1,
+        async_files=Undefined,
+        encrypted=True,
+    )
+
+
+async def test_handle_sync_smartapp_request_wrong_rpc_request(
+    smartapp_event_factory: Callable[..., SmartAppEvent],
+    bot: AsyncMock,
+    bot_id: UUID,
+    chat_id: UUID,
+    ref: UUID,
+) -> None:
+    # - Arrange -
+    rpc = RPCRouter()
+
+    @rpc.method("get_api_version")
+    async def get_api_version(smartapp: SmartApp) -> RPCResultResponse[int]:
+        return RPCResultResponse(result=1)
+
+    smartapp_rpc = SmartAppRPC(routers=[rpc])
+    smartapp_event = smartapp_event_factory("sum")
+    del smartapp_event.data["method"]
+
+    # - Act -
+    response = await smartapp_rpc.handle_sync_smartapp_request(
+        smartapp_event,
+        bot,
+    )
+
+    # - Assert -
+    assert response == SyncSmartAppRequestResponsePayload(
+        ref=ref,
+        smartapp_id=bot_id,
+        group_chat_id=chat_id,
+        data={
+            "status": "error",
+            "errors": [
+                {
+                    "reason": "Invalid RPC request: field required",
+                    "id": "VALUE_ERROR",
+                    "meta": {"field": "method"},
+                },
+            ],
+            "type": "smartapp_rpc",
+        },
+        opts={},
+        smartapp_api_version=1,
+        async_files=Undefined,
         encrypted=True,
     )
