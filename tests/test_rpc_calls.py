@@ -2,7 +2,13 @@ from typing import Callable
 from unittest.mock import AsyncMock
 from uuid import UUID
 
-from pybotx import Document, Image, SmartAppEvent, SyncSmartAppEventResponsePayload
+from pybotx import (
+    BotAPISyncSmartAppEventErrorResponse,
+    BotAPISyncSmartAppEventResultResponse,
+    Document,
+    Image,
+    SmartAppEvent,
+)
 from pybotx.missing import Undefined
 from pydantic import Field
 
@@ -386,15 +392,10 @@ async def test_handle_sync_smartapp_event_without_args(
     )
 
     # - Assert -
-    assert response == SyncSmartAppEventResponsePayload(
+    assert response == BotAPISyncSmartAppEventResultResponse.from_domain(
         ref=ref,
-        smartapp_id=bot_id,
-        group_chat_id=chat_id,
-        data={"status": "ok", "result": 1, "type": "smartapp_rpc"},
-        opts={},
-        smartapp_api_version=1,
-        async_files=Undefined,
-        encrypted=True,
+        data=1,
+        files=Undefined,
     )
 
 
@@ -425,25 +426,14 @@ async def test_handle_sync_smartapp_event_rpc_error_returned(
     )
 
     # - Assert -
-    assert response == SyncSmartAppEventResponsePayload(
-        ref=ref,
-        smartapp_id=bot_id,
-        group_chat_id=chat_id,
-        data={
-            "status": "error",
-            "errors": [
-                {
-                    "reason": "Api version undefined",
-                    "id": "UNDEFINED_API_VERSION",
-                    "meta": {},
-                },
-            ],
-            "type": "smartapp_rpc",
-        },
-        opts={},
-        smartapp_api_version=1,
-        async_files=Undefined,
-        encrypted=True,
+    assert response == BotAPISyncSmartAppEventErrorResponse.from_domain(
+        errors=[
+            {
+                "reason": "Api version undefined",
+                "id": "UNDEFINED_API_VERSION",
+                "meta": {},
+            },
+        ]
     )
 
 
@@ -474,30 +464,19 @@ async def test_handle_sync_smartapp_event_with_wrong_args(
     )
 
     # - Assert -
-    assert response == SyncSmartAppEventResponsePayload(
-        ref=ref,
-        smartapp_id=bot_id,
-        group_chat_id=chat_id,
-        data={
-            "status": "error",
-            "errors": [
-                {
-                    "reason": "value is not a valid integer",
-                    "id": "TYPE_ERROR",
-                    "meta": {"location": ("first",)},
-                },
-                {
-                    "reason": "field required",
-                    "id": "VALUE_ERROR",
-                    "meta": {"location": ("second",)},
-                },
-            ],
-            "type": "smartapp_rpc",
-        },
-        opts={},
-        smartapp_api_version=1,
-        async_files=Undefined,
-        encrypted=True,
+    assert response == BotAPISyncSmartAppEventErrorResponse.from_domain(
+        errors=[
+            {
+                "reason": "value is not a valid integer",
+                "id": "TYPE_ERROR",
+                "meta": {"location": ("first",)},
+            },
+            {
+                "reason": "field required",
+                "id": "VALUE_ERROR",
+                "meta": {"location": ("second",)},
+            },
+        ]
     )
 
 
@@ -526,23 +505,12 @@ async def test_handle_sync_smartapp_event_wrong_rpc_request(
     )
 
     # - Assert -
-    assert response == SyncSmartAppEventResponsePayload(
-        ref=ref,
-        smartapp_id=bot_id,
-        group_chat_id=chat_id,
-        data={
-            "status": "error",
-            "errors": [
-                {
-                    "reason": "Invalid RPC request: field required",
-                    "id": "VALUE_ERROR",
-                    "meta": {"field": "method"},
-                },
-            ],
-            "type": "smartapp_rpc",
-        },
-        opts={},
-        smartapp_api_version=1,
-        async_files=Undefined,
-        encrypted=True,
+    assert response == BotAPISyncSmartAppEventErrorResponse.from_domain(
+        errors=[
+            {
+                "reason": "Invalid RPC request: field required",
+                "id": "VALUE_ERROR",
+                "meta": {"field": "method"},
+            },
+        ]
     )
