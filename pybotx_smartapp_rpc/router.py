@@ -26,11 +26,13 @@ class RPCRouter:
         middlewares: Optional[List[Middleware]] = None,
         tags: Optional[List[Union[str, Enum]]] = None,
         include_in_schema: bool = True,
+        errors: Optional[List[Type[RPCError]]] = None,
     ) -> None:
         self.rpc_methods: Dict[str, RPCMethod] = {}
         self.middlewares: List[Middleware] = middlewares or []
         self.tags: List[Union[str, Enum]] = tags or []
         self.include_in_schema = include_in_schema
+        self.errors: List[Type[RPCError]] = errors or []
 
     def method(
         self,
@@ -56,7 +58,9 @@ class RPCRouter:
                 handler,
                 return_type,
             )
-            errors_fields, errors_models = self._get_error_fields_and_models(errors)
+            errors_fields, errors_models = self._get_error_fields_and_models(
+                self.errors + (errors or []),
+            )
 
             self.rpc_methods[rpc_method_name] = RPCMethod(
                 handler=handler,
@@ -103,8 +107,12 @@ class RPCRouter:
                 f"RPC methods {already_exist_handlers} already registered!",
             )
 
+        errors_fields, errors_models = self._get_error_fields_and_models(self.errors)
+
         for rpc_method_name, rpc_method in router.rpc_methods.items():
             rpc_method.middlewares = self.middlewares + rpc_method.middlewares
+            rpc_method.errors = {**errors_fields, **rpc_method.errors}
+            rpc_method.errors_models = {**errors_models, **rpc_method.errors_models}
             self.rpc_methods[rpc_method_name] = rpc_method
 
     def _get_args_and_return_field(
@@ -145,7 +153,7 @@ class RPCRouter:
     def _get_error_fields_and_models(
         self,
         errors: Optional[List[Type[RPCError]]],
-    ) -> Tuple[Optional[dict], dict]:
+    ) -> Tuple[dict, dict]:
         errors_fields = {}
         errors_models = {}
         if errors:

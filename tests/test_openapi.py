@@ -41,6 +41,11 @@ class OneUserNotFound(UserNotFound):
     id = "OneUserNotFound"
 
 
+class InvalidCredentialsError(RPCError):
+    id = "InvalidCredentialsError"
+    reason = "Invalid credentials"
+
+
 def test__deep_dict_update() -> None:
     a = {"a": {"b": {"c": 1}}}
     b = {"a": {"b": {"d": 2}}}
@@ -122,15 +127,15 @@ async def test_get_rpc_openapi_path__without_args() -> None:
 
 async def test_collect_rpc_method_exists__with_errors() -> None:
     # - Arrange -
-    rpc = RPCRouter(tags=["rpc"])
+    rpc = RPCRouter(tags=["rpc"], errors=[InvalidCredentialsError])
 
-    @rpc.method("get_user", errors=[UserNotFound, OneUserNotFound], tags=["user"])
+    @rpc.method("get_user", errors=[UserNotFound], tags=["user"])
     async def get_api_version(
         smartapp: SmartApp, rpc_args: UserArgs
     ) -> RPCResultResponse[int]:
         return RPCResultResponse(result=42)
 
-    smartapp_rpc = SmartAppRPC(routers=[rpc])
+    smartapp_rpc = SmartAppRPC(routers=[rpc], errors=[OneUserNotFound])
     rpc_model_name_map = get_model_name_map(
         get_rpc_flat_models_from_routes(smartapp_rpc.router)
     )
@@ -184,6 +189,16 @@ async def test_collect_rpc_method_exists__with_errors() -> None:
                     },
                     "description": "**Error**: User not found in system",
                 },
+                "InvalidCredentialsError": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/InvalidCredentialsError"
+                            }
+                        }
+                    },
+                    "description": "**Error**: Invalid credentials",
+                },
             },
         }
     }
@@ -200,7 +215,7 @@ async def test_get_rpc_model_defenition() -> None:
     ) -> RPCResultResponse[int]:
         return RPCResultResponse(result=42)
 
-    smartapp_rpc = SmartAppRPC(routers=[rpc])
+    smartapp_rpc = SmartAppRPC(routers=[rpc], errors=[])
 
     flat_rpc_models = get_rpc_flat_models_from_routes(smartapp_rpc.router)
     rpc_model_name_map = get_model_name_map(flat_rpc_models)

@@ -49,7 +49,7 @@ def get_rpc_flat_models_from_routes(
 
         if router.rpc_methods[method_name].errors_models:
             responses_from_routes.extend(
-                router.rpc_methods[method_name].errors_models.values(),  # type: ignore
+                router.rpc_methods[method_name].errors_models.values(),
             )
 
     return get_flat_models_from_fields(

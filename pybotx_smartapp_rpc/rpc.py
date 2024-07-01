@@ -1,8 +1,9 @@
-from typing import List, Optional
+from typing import List, Optional, Type
 
 from pybotx import Bot, SmartAppEvent, SyncSmartAppEventResponsePayload
 from pydantic.error_wrappers import ValidationError
 
+from pybotx_smartapp_rpc import RPCError
 from pybotx_smartapp_rpc.exception_handlers import (
     default_exception_handler,
     rpc_exception_handler,
@@ -19,16 +20,17 @@ from pybotx_smartapp_rpc.typing import ExceptionHandlerDict, Middleware, RPCResp
 
 
 class SmartAppRPC:
-    def __init__(
+    def __init__(  # noqa: WPS234
         self,
         routers: List[RPCRouter],
         middlewares: Optional[List[Middleware]] = None,
         exception_handlers: Optional[ExceptionHandlerDict] = None,
+        errors: Optional[List[Type[RPCError]]] = None,
     ) -> None:
         self._middlewares = middlewares or []
         self._insert_exception_middleware(exception_handlers or {})
 
-        self._router = self._merge_routers(routers)
+        self._router = self._merge_routers(routers, errors or [])
 
     async def handle_smartapp_event(self, event: SmartAppEvent, bot: Bot) -> None:
         rpc_response: RPCResponse
@@ -97,8 +99,12 @@ class SmartAppRPC:
         exc_middleware = ExceptionMiddleware(exception_handlers)
         self._middlewares.insert(0, exc_middleware)
 
-    def _merge_routers(self, routers: List[RPCRouter]) -> RPCRouter:
-        main_router = RPCRouter(middlewares=self._middlewares)
+    def _merge_routers(
+        self,
+        routers: List[RPCRouter],
+        errors: List[Type[RPCError]],
+    ) -> RPCRouter:
+        main_router = RPCRouter(middlewares=self._middlewares, errors=errors)
         main_router.include(*routers)
 
         return main_router
