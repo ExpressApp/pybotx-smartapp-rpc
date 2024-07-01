@@ -1,4 +1,3 @@
-import pytest
 from pydantic import BaseModel
 from pydantic.schema import get_model_name_map
 
@@ -204,8 +203,7 @@ async def test_collect_rpc_method_exists__with_errors() -> None:
     }
 
 
-@pytest.mark.wip
-async def test_get_rpc_model_defenition() -> None:
+async def test_get_rpc_model_definition() -> None:
     # - Arrange -
     rpc = RPCRouter(tags=["rpc"])
 

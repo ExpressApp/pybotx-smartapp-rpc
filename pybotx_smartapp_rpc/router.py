@@ -154,25 +154,27 @@ class RPCRouter:
         self,
         errors: Optional[List[Type[RPCError]]],
     ) -> Tuple[dict, dict]:
-        errors_fields = {}
-        errors_models = {}
-        if errors:
-            errors_fields = {
-                error.__fields__["id"].default: {
-                    "description": error.__doc__ or error.__fields__["reason"].default,
-                }
-                for error in errors
-                if error.__fields__["id"].default
+        errors_fields: Dict[str, dict] = {}
+        errors_models: Dict[str, ModelField] = {}
+        if not errors:
+            return errors_fields, errors_models
+
+        errors_fields = {
+            error.__fields__["id"].default: {
+                "description": error.__doc__ or error.__fields__["reason"].default,
             }
-            errors_models = {
-                error.__fields__["id"].default: ModelField(
-                    name=error.__name__,
-                    type_=error,
-                    class_validators=None,
-                    model_config=BaseConfig,
-                )
-                for error in errors
-                if error.__fields__["id"].default
-            }
+            for error in errors
+            if error.__fields__["id"].default
+        }
+        errors_models = {
+            error.__fields__["id"].default: ModelField(
+                name=error.__name__,
+                type_=error,
+                class_validators=None,
+                model_config=BaseConfig,
+            )
+            for error in errors
+            if error.__fields__["id"].default
+        }
 
         return errors_fields, errors_models
