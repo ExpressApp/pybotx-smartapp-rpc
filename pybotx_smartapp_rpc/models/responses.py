@@ -7,7 +7,10 @@ from pydantic.error_wrappers import ValidationError
 
 from pybotx_smartapp_rpc.models.errors import RPCError
 
-_ResultType = Union[BaseModel, float, int, str, bool, List, Dict]
+_JsonableResultType = Union[float, int, str, bool, List, Dict]
+JsonableResultType = TypeVar("JsonableResultType", bound=_JsonableResultType)
+
+_ResultType = Union[BaseModel, _JsonableResultType]
 ResultType = TypeVar("ResultType", bound=_ResultType)
 
 
@@ -23,15 +26,17 @@ class RPCResultResponse(Generic[ResultType]):
     encrypted: bool = True
 
     def jsonable_dict(self) -> Dict[str, Any]:
-        result: _ResultType = self.result
-        if isinstance(self.result, BaseModel):
-            result = self.result.dict(by_alias=True)
-
         return {
             "status": "ok",
             "type": "smartapp_rpc",
-            "result": result,
+            "result": self.jsonable_result(),
         }
+
+    def jsonable_result(self) -> JsonableResultType:
+        if isinstance(self.result, BaseModel):
+            return self.result.dict(by_alias=True)  # type: ignore
+
+        return self.result  # type: ignore
 
 
 @dataclass
@@ -44,8 +49,11 @@ class RPCErrorResponse:
         return {
             "status": "error",
             "type": "smartapp_rpc",
-            "errors": [error.dict() for error in self.errors],
+            "errors": self.jsonable_errors(),
         }
+
+    def jsonable_errors(self) -> List[Dict[str, Any]]:
+        return [error.dict() for error in self.errors]
 
 
 def build_invalid_rpc_request_error_response(

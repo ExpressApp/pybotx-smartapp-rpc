@@ -1,9 +1,15 @@
 from typing import List, Optional, Type
 
-from pybotx import Bot, SmartAppEvent, SyncSmartAppEventResponsePayload
-from pydantic.error_wrappers import ValidationError
+from pybotx import (
+    Bot,
+    BotAPISyncSmartAppEventErrorResponse,
+    BotAPISyncSmartAppEventResponse,
+    BotAPISyncSmartAppEventResultResponse,
+    SmartAppEvent,
+)
+from pydantic import ValidationError
 
-from pybotx_smartapp_rpc import RPCError
+from pybotx_smartapp_rpc import RPCError, RPCErrorResponse
 from pybotx_smartapp_rpc.exception_handlers import (
     default_exception_handler,
     rpc_exception_handler,
@@ -60,7 +66,7 @@ class SmartAppRPC:
         self,
         event: SmartAppEvent,
         bot: Bot,
-    ) -> SyncSmartAppEventResponsePayload:
+    ) -> BotAPISyncSmartAppEventResponse:
         try:
             rpc_request = RPCRequest(**event.data)
         except ValidationError as invalid_rcp_request_exc:
@@ -73,14 +79,14 @@ class SmartAppRPC:
                 rpc_request,
             )
 
-        return SyncSmartAppEventResponsePayload.from_domain(
-            ref=event.ref,
-            smartapp_id=event.bot.id,
-            chat_id=event.chat.id,
-            data=rpc_response.jsonable_dict(),
-            opts={},
+        if isinstance(rpc_response, RPCErrorResponse):
+            return BotAPISyncSmartAppEventErrorResponse.from_domain(
+                errors=rpc_response.jsonable_errors(),
+            )
+
+        return BotAPISyncSmartAppEventResultResponse.from_domain(
+            data=rpc_response.jsonable_result(),
             files=rpc_response.files,
-            encrypted=rpc_response.encrypted,
         )
 
     @property
