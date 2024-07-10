@@ -9,8 +9,7 @@ from pybotx import (
 )
 from pydantic import ValidationError
 
-from pybotx_smartapp_rpc import RPCError
-from pybotx_smartapp_rpc import RPCErrorResponse
+from pybotx_smartapp_rpc import RPCError, RPCErrorResponse
 from pybotx_smartapp_rpc.exception_handlers import (
     default_exception_handler,
     rpc_exception_handler,

@@ -393,7 +393,6 @@ async def test_handle_sync_smartapp_event_without_args(
 
     # - Assert -
     assert response == BotAPISyncSmartAppEventResultResponse.from_domain(
-        ref=ref,
         data=1,
         files=Undefined,
     )
