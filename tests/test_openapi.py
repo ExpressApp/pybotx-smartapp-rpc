@@ -1,5 +1,6 @@
+from deepdiff import DeepDiff
 from pydantic import BaseModel
-from pydantic.schema import get_model_name_map
+from pydantic.v1.schema import get_model_name_map
 
 from pybotx_smartapp_rpc import (
     RPCError,
@@ -31,18 +32,18 @@ class Meta(BaseModel):
 class UserNotFound(RPCError):
     """Error description."""
 
-    id = "UserNotFound"
-    reason = "User not found in system"
+    id:str = "UserNotFound"
+    reason:str = "User not found in system"
     meta: Meta
 
 
 class OneUserNotFound(UserNotFound):
-    id = "OneUserNotFound"
+    id:str = "OneUserNotFound"
 
 
 class InvalidCredentialsError(RPCError):
-    id = "InvalidCredentialsError"
-    reason = "Invalid credentials"
+    id:str = "InvalidCredentialsError"
+    reason:str = "Invalid credentials"
 
 
 def test__deep_dict_update() -> None:
@@ -101,7 +102,7 @@ async def test_get_rpc_openapi_path__without_args() -> None:
         security_scheme={"auth": []},
     )
 
-    assert path == {
+    expected_path = {
         "post": {
             "description": None,
             "operationId": "rpc_get_api_version",
@@ -122,6 +123,10 @@ async def test_get_rpc_openapi_path__without_args() -> None:
             "security": [{"auth": []}],
         }
     }
+
+    diff = DeepDiff(expected_path, path)
+
+    assert not diff, diff
 
 
 async def test_collect_rpc_method_exists__with_errors() -> None:
@@ -146,7 +151,7 @@ async def test_collect_rpc_method_exists__with_errors() -> None:
         model_name_map=rpc_model_name_map,
     )
 
-    assert path == {
+    expected_path = {
         "post": {
             "summary": "Get Api Version",
             "tags": ["rpc", "user"],
@@ -202,6 +207,9 @@ async def test_collect_rpc_method_exists__with_errors() -> None:
         }
     }
 
+    diff = DeepDiff(expected_path, path, ignore_order=True)
+    assert not diff, diff
+
 
 async def test_get_rpc_model_definition() -> None:
     # - Arrange -
@@ -223,7 +231,7 @@ async def test_get_rpc_model_definition() -> None:
         flat_models=flat_rpc_models, model_name_map=rpc_model_name_map
     )
 
-    assert rpc_definitions == {
+    expected_definitions = {
         "Meta": {
             "properties": {"user_id": {"title": "User Id", "type": "integer"}},
             "required": ["user_id"],
@@ -252,3 +260,6 @@ async def test_get_rpc_model_definition() -> None:
             "type": "object",
         },
     }
+
+    diff = DeepDiff(expected_definitions, rpc_definitions, ignore_order=True)
+    assert not diff, diff

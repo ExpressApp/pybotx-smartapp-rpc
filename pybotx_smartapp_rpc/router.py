@@ -2,9 +2,9 @@ import inspect
 from enum import Enum
 from typing import Callable, Dict, List, Optional, Tuple, Type, Union
 
-from pydantic import BaseConfig
+from pydantic.v1 import BaseConfig
 from pydantic.error_wrappers import ValidationError
-from pydantic.fields import ModelField
+from pydantic.v1.fields import ModelField
 
 from pybotx_smartapp_rpc import RPCError
 from pybotx_smartapp_rpc.empty_args import EmptyArgs
@@ -18,6 +18,10 @@ from pybotx_smartapp_rpc.models.responses import (
 )
 from pybotx_smartapp_rpc.smartapp import SmartApp
 from pybotx_smartapp_rpc.typing import Handler, Middleware, RPCResponse
+
+# Create a config that allows arbitrary types
+class FlexibleConfig(BaseConfig):
+    arbitrary_types_allowed = True
 
 
 class RPCRouter:
@@ -130,21 +134,12 @@ class RPCRouter:
         if return_type:
             response_type = return_type
 
-        response_field = ModelField(
-            name=f"Response_{handler.__name__}",
-            type_=response_type,
-            model_config=BaseConfig,
-            class_validators={},
-        )
+        response_field = self._get_ModelField(name=f"Response_{handler.__name__}",
+            type_=response_type,)
 
         args_annotations = [arg[1].annotation for arg in signature.parameters.items()]
         if len(args_annotations) >= 2:
-            arg_field = ModelField(
-                name=str(args_annotations[1].__name__),
-                type_=args_annotations[1],
-                model_config=BaseConfig,
-                class_validators={},
-            )
+            arg_field = self._get_ModelField(name=str(args_annotations[1].__name__), type_=args_annotations[1])
         else:
             arg_field = None  # type: ignore
 
@@ -167,14 +162,19 @@ class RPCRouter:
             if error.__fields__["id"].default
         }
         errors_models = {
-            error.__fields__["id"].default: ModelField(
-                name=error.__name__,
-                type_=error,
-                class_validators=None,
-                model_config=BaseConfig,
-            )
+            error.__fields__["id"].default: self._get_ModelField(name=error.__name__, type_=error)
             for error in errors
             if error.__fields__["id"].default
         }
 
         return errors_fields, errors_models
+
+    def _get_ModelField(self, name:str, type_:type) -> ModelField:
+        model_field =  ModelField(
+            name=name,
+            type_=type_,
+            model_config=FlexibleConfig,
+            class_validators={},
+        )
+        model_field.prepare()
+        return model_field

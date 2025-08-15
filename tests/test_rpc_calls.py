@@ -2,6 +2,7 @@ from typing import Callable
 from unittest.mock import AsyncMock
 from uuid import UUID
 
+from deepdiff import DeepDiff
 from pybotx import (
     BotAPISyncSmartAppEventErrorResponse,
     BotAPISyncSmartAppEventResultResponse,
@@ -109,13 +110,13 @@ async def test_rpc_call_with_wrong_args(
             "status": "error",
             "errors": [
                 {
-                    "reason": "value is not a valid integer",
-                    "id": "TYPE_ERROR",
+                    "reason": "Input should be a valid integer, unable to parse string as an integer",
+                    "id": "INT_PARSING",
                     "meta": {"location": ("first",)},
                 },
                 {
-                    "reason": "field required",
-                    "id": "VALUE_ERROR",
+                    "reason": "Field required",
+                    "id": "MISSING",
                     "meta": {"location": ("second",)},
                 },
             ],
@@ -204,8 +205,8 @@ async def test_rpc_call_wrong_rpc_request(
             "status": "error",
             "errors": [
                 {
-                    "reason": "Invalid RPC request: field required",
-                    "id": "VALUE_ERROR",
+                    "reason": "Invalid RPC request: Field required",
+                    "id": "MISSING",
                     "meta": {"field": "method"},
                 },
             ],
@@ -310,7 +311,7 @@ async def test_rpc_call_acceptiong_and_returning_aliased_model(
         args: SumArgs,
     ) -> RPCResultResponse[SumResponse]:
         return RPCResultResponse(
-            SumResponse(call_result=args.first_arg + args.second_arg),
+            SumResponse(callResult=args.first_arg + args.second_arg),
         )
 
     smartapp_rpc = SmartAppRPC(routers=[rpc])
@@ -392,10 +393,12 @@ async def test_handle_sync_smartapp_event_without_args(
     )
 
     # - Assert -
-    assert response == BotAPISyncSmartAppEventResultResponse.from_domain(
+    expected_object = BotAPISyncSmartAppEventResultResponse.from_domain(
         data=1,
         files=Undefined,
     )
+    diff = DeepDiff(response.model_dump(), expected_object.model_dump())
+    assert not diff, diff
 
 
 async def test_handle_sync_smartapp_event_rpc_error_returned(
@@ -425,7 +428,7 @@ async def test_handle_sync_smartapp_event_rpc_error_returned(
     )
 
     # - Assert -
-    assert response == BotAPISyncSmartAppEventErrorResponse.from_domain(
+    expected_response = BotAPISyncSmartAppEventErrorResponse.from_domain(
         errors=[
             {
                 "reason": "Api version undefined",
@@ -434,6 +437,9 @@ async def test_handle_sync_smartapp_event_rpc_error_returned(
             },
         ]
     )
+
+    diff = DeepDiff(response.model_dump(), expected_response.model_dump())
+    assert not diff, diff
 
 
 async def test_handle_sync_smartapp_event_with_wrong_args(
@@ -463,20 +469,23 @@ async def test_handle_sync_smartapp_event_with_wrong_args(
     )
 
     # - Assert -
-    assert response == BotAPISyncSmartAppEventErrorResponse.from_domain(
+    expected_response = BotAPISyncSmartAppEventErrorResponse.from_domain(
         errors=[
             {
-                "reason": "value is not a valid integer",
-                "id": "TYPE_ERROR",
+                "reason": "Input should be a valid integer, unable to parse string as an integer",
+                "id": "INT_PARSING",
                 "meta": {"location": ("first",)},
             },
             {
-                "reason": "field required",
-                "id": "VALUE_ERROR",
+                "reason": "Field required",
+                "id": "MISSING",
                 "meta": {"location": ("second",)},
             },
         ]
     )
+
+    diff = DeepDiff(response.model_dump(), expected_response.model_dump())
+    assert not diff, diff
 
 
 async def test_handle_sync_smartapp_event_wrong_rpc_request(
@@ -504,12 +513,16 @@ async def test_handle_sync_smartapp_event_wrong_rpc_request(
     )
 
     # - Assert -
-    assert response == BotAPISyncSmartAppEventErrorResponse.from_domain(
+    expected_response = BotAPISyncSmartAppEventErrorResponse.from_domain(
         errors=[
             {
-                "reason": "Invalid RPC request: field required",
-                "id": "VALUE_ERROR",
+                "reason": "Invalid RPC request: Field required",
+                "id": "MISSING",
                 "meta": {"field": "method"},
             },
         ]
     )
+
+    diff = DeepDiff(response.model_dump(), expected_response.model_dump())
+    assert not diff, diff
+

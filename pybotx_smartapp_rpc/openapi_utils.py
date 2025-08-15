@@ -1,16 +1,15 @@
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Type, Union
 
-from pydantic import BaseModel
-from pydantic.fields import ModelField
-from pydantic.schema import (
-    field_schema,
-    get_flat_models_from_fields,
-    model_process_schema,
-)
+from pydantic import BaseModel, TypeAdapter
+
+from pydantic.v1.fields import ModelField
+from pydantic.v1.schema import model_process_schema, \
+    field_schema
 
 from pybotx_smartapp_rpc import RPCRouter
 from pybotx_smartapp_rpc.models.method import RPCMethod
+from pybotx_smartapp_rpc.pydantic_v1_override import get_flat_models_from_fields
 
 REF_PREFIX = "#/components/schemas/"
 
@@ -63,42 +62,47 @@ def get_rpc_model_definitions(
     flat_models: Set[Union[Type[BaseModel], Type[Enum]]],
     model_name_map: Dict[Union[Type[BaseModel], Type[Enum]], str],
 ) -> Dict[str, Any]:
+
     definitions: Dict[str, Dict[str, Any]] = {}
     for model in flat_models:
-        m_schema, m_definitions, m_nested_models = model_process_schema(
-            model,
-            model_name_map=model_name_map,
-            ref_prefix=REF_PREFIX,
-        )
-        definitions.update(m_definitions)
+        # Get the JSON schema of the model (including nested definitions under '$defs')
+        m_schema = model.model_json_schema(ref_template=REF_PREFIX + '{model}')
+
+        # Extract nested model definitions from $defs (if present)
+        nested_defs = m_schema.pop('$defs', {})
+
+        # Update overall definitions with nested definitions
+        definitions.update(nested_defs)
+
         model_name = model_name_map[model]
+
+        # Optionally modify the description to remove form feed characters as before
         if "description" in m_schema:
             m_schema["description"] = m_schema["description"].split("\f")[0]
-        definitions[model_name] = m_schema
-    return definitions
 
+        # Add the model's own schema under its mapped name
+        definitions[model_name] = m_schema
+
+    return definitions
 
 def get_openapi_operation_rpc_args(
     *,
-    body_field: Optional[ModelField],
+    body_field: Optional[Any],
     model_name_map: Dict[Union[Type[BaseModel], Type[Enum]], str],
 ) -> Optional[Dict[str, Any]]:
     if not body_field:
         return None
 
-    body_schema, _, _ = field_schema(
-        body_field,
-        model_name_map=model_name_map,
-        ref_prefix=REF_PREFIX,
-    )
-    request_media_type = "application/json"
-    required = body_field.required
-    request_body_oai: Dict[str, Any] = {}
-    if required:
-        request_body_oai["required"] = required
+    model_type = body_field.outer_type_
+    body_schema = schema_or_ref(model_type, model_name_map)
 
-    request_media_content: Dict[str, Any] = {"schema": body_schema}
-    request_body_oai["content"] = {request_media_type: request_media_content}
+    request_media_type = "application/json"
+    request_body_oai: Dict[str, Any] = {}
+    if body_field.required:
+        request_body_oai["required"] = True
+
+    request_body_oai["content"] = {request_media_type: {"schema": body_schema}}
+
     return request_body_oai
 
 
@@ -117,6 +121,16 @@ def get_openapi_rpc_metadata(*, name: str, route: RPCMethod) -> Dict[str, Any]:
     return operation
 
 
+def schema_or_ref(model_type, model_name_map):
+    """Return a $ref if model_type is a Pydantic model or Enum in model_name_map, else inline schema."""
+    if (
+        isinstance(model_type, type)
+        and (issubclass(model_type, BaseModel) or issubclass(model_type, Enum))
+        and model_type in model_name_map
+    ):
+        return {"$ref": f"{REF_PREFIX}{model_name_map[model_type]}"}
+
+    return TypeAdapter(model_type).json_schema(ref_template=REF_PREFIX + '{model}')
 def get_rpc_openapi_path(  # noqa: WPS231
     *,
     method_name: str,
@@ -137,11 +151,9 @@ def get_rpc_openapi_path(  # noqa: WPS231
         operation["requestBody"] = request_body_oai
 
     # - Successful response -
-    response_schema, _, _ = field_schema(
-        route.response_field,
-        model_name_map=model_name_map,
-        ref_prefix=REF_PREFIX,
-    )
+    response_model = route.response_field.outer_type_
+    response_schema = schema_or_ref(response_model, model_name_map)
+    response_schema["title"] = route.response_field.name.replace('_', ' ').title()
 
     operation.setdefault("responses", {}).setdefault("ok", {}).update(
         {
@@ -160,17 +172,12 @@ def get_rpc_openapi_path(  # noqa: WPS231
             if route.errors_models and (
                 field := route.errors_models[error_status_code]  # noqa: WPS332
             ):
-                error_field_schema, _, _ = field_schema(
-                    field,
-                    model_name_map=model_name_map,
-                    ref_prefix=REF_PREFIX,
-                )
-                error_schema = (
-                    process_response.setdefault("content", {})
-                    .setdefault("application/json", {})
-                    .setdefault("schema", {})
-                )
-                deep_dict_update(error_schema, error_field_schema)
+                error_model = field.outer_type_
+                error_schema = schema_or_ref(error_model, model_name_map)
+
+                process_response.setdefault("content", {}).setdefault(
+                    "application/json", {}
+                )["schema"] = error_schema
 
             description = error_response["description"] or "Error"
             deep_dict_update(openapi_response, process_response)
