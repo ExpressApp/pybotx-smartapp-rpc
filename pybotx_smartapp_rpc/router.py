@@ -155,7 +155,7 @@ class RPCRouter:
             return errors_fields, errors_models
 
         errors_fields = {
-            error.__fields__["id"].default: {
+            error.model_fields["id"].default: {
                 "description": error.__doc__ or error.__fields__["reason"].default,
             }
             for error in errors
