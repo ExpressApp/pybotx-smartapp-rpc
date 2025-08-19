@@ -2,7 +2,7 @@ import inspect
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
-from pydantic.error_wrappers import ValidationError
+from pydantic import ValidationError
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 

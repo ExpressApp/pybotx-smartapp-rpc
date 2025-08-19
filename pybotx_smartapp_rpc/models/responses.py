@@ -52,7 +52,7 @@ class RPCErrorResponse:
         }
 
     def jsonable_errors(self) -> List[Dict[str, Any]]:
-        return [error.dict() for error in self.errors]
+        return [error.model_dump() for error in self.errors]
 
 
 def build_invalid_rpc_request_error_response(

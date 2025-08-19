@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pybotx-smartapp-rpc"
-version = "0.11.0"
+version = "0.12.0"
 description = "eXpress SmartApp JSON-RPC library"
 authors = ["Arseniy Zhiltsov <arseniy.zhiltsov@ccsteam.ru>"]
 readme = "README.md"
@@ -17,7 +17,7 @@ fastapi = { version = "~0.115.1", optional = true }
 [tool.poetry.extras]
 fastapi_utils = ["fastapi"]
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 
 mypy = "1.16.1"
 ruff = "0.12.0"
