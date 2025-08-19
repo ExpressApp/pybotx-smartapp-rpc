@@ -113,7 +113,7 @@ def deep_dict_update(
 
 def get_schema_or_ref(
     model: ModelField,
-    model_name_map: dict[type[Union[BaseModel | Enum]], str],
+    model_name_map: dict[type[Union[BaseModel , Enum]], str],
     ref_prefix: str,
 ) -> dict:
     if model_name := model_name_map.get(model.type_):
