@@ -12,6 +12,11 @@ pydantic = ">=2.8.2,<3.0"
 pybotx = "~0.76.0a1"
 deepdiff = "^8.6.0"
 
+fastapi = { version = "~0.115.1", optional = true }
+
+[tool.poetry.extras]
+fastapi_utils = ["fastapi"]
+
 [tool.poetry.dev-dependencies]
 add-trailing-comma = "^3.2.0"
 black = "25.1.0"
