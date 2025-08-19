@@ -14,7 +14,7 @@ from pybotx_smartapp_rpc.openapi.utils import (
 )
 
 REF_PREFIX = "#/components/schemas/"
-ModelNameMap: type[dict[type[BaseModel | Enum], str]] = Dict[
+ModelNameMap: type[dict[type[Union[BaseModel | Enum]], str]] = Dict[
     Union[Type[BaseModel], Type[Enum]], str
 ]
 
