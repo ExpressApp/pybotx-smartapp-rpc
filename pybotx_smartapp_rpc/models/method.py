@@ -16,6 +16,29 @@ from pybotx_smartapp_rpc.typing import (
 
 @dataclass
 class RPCMethod:
+    """
+    Represents a Remote Procedure Call (RPC) method and its associated behavior.
+
+    This class encapsulates the details and execution logic for an RPC method,
+    including its handler, middlewares, response structure, and associated configurations.
+    It is responsible for assembling the middleware stack and invoking the RPC handler
+    with the provided arguments.
+
+    :ivar handler: The main handler function for the RPC method.
+    :ivar middlewares: A list of middleware to be applied to the RPC method.
+    :ivar response_field: The field defining the structure of the response returned by
+        the RPC method.
+    :ivar arguments_field: Optional field defining the structure of input arguments
+        for the RPC method.
+    :ivar tags: Tags associated with the RPC method, used for classification or
+        documentation purposes.
+    :ivar errors: A dictionary mapping error codes to error details relevant
+        to the RPC method.
+    :ivar errors_models: A dictionary mapping error codes to model descriptions
+        for error handling in the RPC method.
+    :ivar include_in_schema: Indicates whether the RPC method should be
+        included in the API schema.
+    """
     handler: Handler
     middlewares: List[Middleware]
     response_field: ModelField

@@ -25,6 +25,20 @@ def update_fastapi_paths_by_rpc_router(
     security_definitions: Optional[dict[str, Any]] = None,
     operation_security: Optional[dict[str, Any]] = None,
 ) -> None:
+    """
+    Updates the OpenAPI dictionary by adding paths and components related to the
+    provided RPCRouter and its configured methods.
+    Additionally, updates security definitions and operation-specific security
+    configurations if provided.
+
+    :param openapi_dict: The base OpenAPI dictionary to be updated with the RPC router paths.
+    :param rpc_router: The RPCRouter instance containing the RPC methods to include in the schema.
+    :param security_definitions: Optional dictionary defining security schemes to add to the
+        OpenAPI specification.
+    :param operation_security: Optional dictionary specifying operation-level security
+        configurations for RPC methods in the OpenAPI schema.
+    :return: Nothing. Modifies the `openapi_dict` in place.
+    """
     if security_definitions is not None:
         openapi_dict.setdefault("components", {}).setdefault(
             "securitySchemes", {}

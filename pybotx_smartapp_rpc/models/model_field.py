@@ -7,6 +7,16 @@ from pydantic_core import PydanticUndefined as Undefined
 
 @dataclass
 class ModelField:
+    """
+    Represents a model field with metadata and utilities for managing its properties.
+
+    The ModelField class encapsulates information about a model's field, including its
+    name, type hint, default value, and whether it is required. It provides methods
+    and properties to query and manage these attributes effectively.
+
+    :ivar field_info: Metadata and information about the field.
+    :ivar name: The name of the field.
+    """
     field_info: FieldInfo
     name: str
 

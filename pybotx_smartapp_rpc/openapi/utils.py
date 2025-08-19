@@ -1,3 +1,4 @@
+"""This module contains utility functions for OpenAPI generation."""
 import re
 from enum import Enum
 from typing import Any, Dict, Sequence, Set, Type, Union
@@ -10,15 +11,6 @@ from pybotx_smartapp_rpc.models.model_field import ModelField
 TypeModelOrEnum = Union[Type[BaseModel], Type[Enum]]
 TypeModelSet = Set[TypeModelOrEnum]
 
-
-def _get_field_type(field: Union[ModelField, FieldInfo]) -> Any:
-    """Extract declared type from our wrapper or a native FieldInfo."""
-    if isinstance(field, ModelField):
-        return field.type_
-    elif isinstance(field, FieldInfo):
-        return field.annotation
-    else:
-        raise TypeError(f"Unsupported field type: {type(field)}")
 
 
 def get_flat_models_from_model(
@@ -120,3 +112,12 @@ def get_schema_or_ref(
         return {"$ref": ref_prefix + model_name}
 
     return TypeAdapter(model.type_).json_schema(ref_template=ref_prefix + "{model}")
+
+def _get_field_type(field: Union[ModelField, FieldInfo]) -> Any:
+    """Extract declared type from our wrapper or a native FieldInfo."""
+    if isinstance(field, ModelField):
+        return field.type_
+    elif isinstance(field, FieldInfo):
+        return field.annotation
+    else:
+        raise TypeError(f"Unsupported field type: {type(field)}")
