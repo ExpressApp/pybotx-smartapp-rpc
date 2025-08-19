@@ -187,79 +187,38 @@ smartapp = SmartAppRPC(..., exception_handlers={KeyError: key_error_handler})
 ### Swagger documentation
 Можно подключить rpc роутеры к авто генерируемой документации FastAPI и использовать
 документацию в Swagger. Для этого необходимо переопределить функцию для генерации 
-OpenAPI схемы:
+OpenAPI схемы.
+
+Для этого необходимо:
+1. Установить данную библиотеку с подключенной опцией
+["fastapi_utils"]: 
+```
+pybotx-smartapp-rpc = {version, extras = ["fastapi_utils"]}
+```
+2. При создании приложения подключить метод из библиотеки:
 ```python
 from fastapi import FastAPI
-
+from pybotx_smartapp_rpc.fastapi_utils.custom_openapi import rpc_openapi
+from pybotx_smartapp_rpc.fastapi_utils.security import RPCAuth
 application = FastAPI()
-def get_custom_openapi():
-    return custom_openapi(
-        title="Smartapp API",
+security = RPCAuth(
+    bot_id=bot_id_from_credentials
+)
+
+def get_custom_openapi(): 
+    return rpc_openapi(
+        title="Project Name",
         version="0.1.0",
         fastapi_routes=application.routes,
-        rpc_router=smartapp.router,
+        rpc_router=your_rpc_router,
         openapi_version="3.0.2",
+        security=security
     )
 
-application.openapi = get_custom_openapi
+    application.openapi = get_custom_openapi  # type: ignore
+
 ```
 
-Пример функции `custom_openapi`:
-
-```python
-from fastapi.encoders import jsonable_encoder
-from fastapi.openapi.models import OpenAPI
-from fastapi.openapi.utils import get_openapi
-from pybotx_smartapp_rpc import RPCRouter
-from pybotx_smartapp_rpc.openapi.old.openapi_utils import *
-from pydantic.schema import get_model_name_map
-from starlette.routing import BaseRoute
-
-
-def custom_openapi(
-        *,
-        title: str,
-        version: str,
-        fastapi_routes: Sequence[BaseRoute],
-        rpc_router: RPCRouter,
-        **kwargs: Any,
-) -> Dict[str, Any]:
-    openapi_dict = get_openapi(
-        title=title,
-        version=version,
-        routes=fastapi_routes,
-        **kwargs,
-    )
-
-    paths: Dict[str, Dict[str, Any]] = {}
-
-    flat_rpc_models = get_rpc_flat_models_from_routes(rpc_router)
-    rpc_model_name_map = get_model_name_map(flat_rpc_models)
-    rpc_definitions = get_rpc_model_definitions(
-        flat_models=flat_rpc_models, model_name_map=rpc_model_name_map
-    )
-
-    for method_name in rpc_router.rpc_methods.keys():
-        if not rpc_router.rpc_methods[method_name].include_in_schema:
-            continue
-
-        path = get_rpc_openapi_path(  # type: ignore
-            method_name=method_name,
-            route=rpc_router.rpc_methods[method_name],
-            model_name_map=rpc_model_name_map,
-        )
-        if path:
-            paths.setdefault(f"/{method_name}", {}).update(path)
-
-    if rpc_definitions:
-        openapi_dict.setdefault("components", {}).setdefault("schemas", {}).update(
-            {k: rpc_definitions[k] for k in sorted(rpc_definitions)}
-        )
-
-    openapi_dict.setdefault("paths", {}).update(paths)
-
-    return jsonable_encoder(OpenAPI(**openapi_dict), by_alias=True, exclude_none=True)
-```
 ### Возможности RPC Swagger
 
 * Можно добавлять теги к запросам, анaлогично FastAPI.

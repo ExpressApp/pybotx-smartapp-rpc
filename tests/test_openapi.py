@@ -1,5 +1,7 @@
+from enum import Enum
 from typing import Any
 
+import pytest
 from deepdiff import DeepDiff
 from pydantic import BaseModel
 
@@ -32,6 +34,20 @@ class Response(BaseModel):
 
 class Meta(BaseModel):
     user_id: int
+
+
+class Color(str, Enum):
+    RED = "RED"
+    GREEN = "GREEN"
+
+
+class Status(Enum):
+    OK = 1
+    FAIL = 2
+
+
+class Item(BaseModel):
+    color: Color
 
 
 class UserNotFoundError(RPCError):
@@ -386,3 +402,40 @@ def test_update_fastapi_paths_merges_into_existing_empty_sections_gracefully():
     # Assert minimal structure created and path added
     assert "paths" in openapi_dict
     assert "/ping" in openapi_dict["paths"]
+
+
+
+@pytest.mark.parametrize(
+    "enum_cls, expected_type, expected_values",
+    [
+        (Color, "string", ["RED", "GREEN"]),
+        (Status, "integer", [1, 2]),
+    ],
+)
+def test_openapi_definitions_for_enums(enum_cls, expected_type, expected_values):
+    defs = get_rpc_model_definitions(
+        flat_models={enum_cls},
+        model_name_map={enum_cls: enum_cls.__name__},
+    )
+
+    enum_schema = defs[enum_cls.__name__]
+    assert enum_schema["enum"] == expected_values
+    assert enum_schema["type"] == expected_type
+
+
+def test_openapi_definitions_for_model_with_enum_field():
+    defs = get_rpc_model_definitions(
+        flat_models={Item, Color},
+        model_name_map={Item: "Item", Color: "Color"},
+    )
+
+    assert "Color" in defs
+    assert "Item" in defs
+
+    item_schema = defs["Item"]
+    assert item_schema["type"] == "object"
+    props = item_schema["properties"]
+    assert "color" in props
+    # Убедимся, что поле color ссылается на определение Color
+    assert "$ref" in props["color"]
+    assert props["color"]["$ref"].endswith("/Color")

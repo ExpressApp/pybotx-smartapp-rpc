@@ -68,10 +68,6 @@ def get_rpc_model_definitions(
     for model in flat_models:
         if isinstance(model, type) and issubclass(model, BaseModel):
             m_schema = model.model_json_schema(ref_template=REF_PREFIX + "{model}")
-        elif isinstance(model, type) and issubclass(model, Enum):
-            m_schema = TypeAdapter(model).json_schema(
-                ref_template=REF_PREFIX + "{model}"
-            )
         else:
             m_schema = TypeAdapter(model).json_schema(
                 ref_template=REF_PREFIX + "{model}"

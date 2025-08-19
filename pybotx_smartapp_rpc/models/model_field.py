@@ -12,11 +12,6 @@ class ModelField:
     name: str
 
     @property
-    def alias(self) -> str:
-        a = self.field_info.alias
-        return a if a is not None else self.name
-
-    @property
     def required(self) -> bool:
         return self.field_info.is_required()
 
@@ -27,11 +22,6 @@ class ModelField:
     @property
     def type_(self) -> Any:
         return self.field_info.annotation
-
-    def __post_init__(self) -> None:
-        self._type_adapter: TypeAdapter[Any] = TypeAdapter(
-            Annotated[self.field_info.annotation, self.field_info]
-        )
 
     def get_default(self) -> Any:
         if self.field_info.is_required():
