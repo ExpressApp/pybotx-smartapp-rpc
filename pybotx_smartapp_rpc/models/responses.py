@@ -3,7 +3,7 @@ from typing import Any, Dict, Generic, List, TypeVar, Union
 
 from pybotx import File
 from pydantic import BaseModel
-from pydantic.error_wrappers import ValidationError
+from pydantic import ValidationError
 
 from pybotx_smartapp_rpc.models.errors import RPCError
 
