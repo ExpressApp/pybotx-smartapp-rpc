@@ -20,7 +20,7 @@ class RPCMethod:
     Represents a Remote Procedure Call (RPC) method and its associated behavior.
 
     This class encapsulates the details and execution logic for an RPC method,
-    including its handler, middlewares, response structure, and associated configurations.
+    including its handler, middlewares, response structure, and configurations.
     It is responsible for assembling the middleware stack and invoking the RPC handler
     with the provided arguments.
 
@@ -39,6 +39,7 @@ class RPCMethod:
     :ivar include_in_schema: Indicates whether the RPC method should be
         included in the API schema.
     """
+
     handler: Handler
     middlewares: List[Middleware]
     response_field: ModelField

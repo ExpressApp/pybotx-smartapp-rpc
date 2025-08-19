@@ -17,6 +17,7 @@ class ModelField:
     :ivar field_info: Metadata and information about the field.
     :ivar name: The name of the field.
     """
+
     field_info: FieldInfo
     name: str
 
