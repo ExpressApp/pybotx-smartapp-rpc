@@ -17,7 +17,7 @@ jobs:
           poetry-version: "2.1.4"
 
       - name: Install dependencies with fastapi
-        run: poetry install --with fastapi_utils
+        run: poetry install --extras fastapi_utils
 
       - name: Run tests
         run: |
@@ -39,7 +39,7 @@ jobs:
           poetry-version: "2.1.4"
 
       - name: Install dependencies with fastapi
-        run: poetry install --with fastapi_utils
+        run: poetry install --extras fastapi_utils
 
       - name: Run lint
         run: |
