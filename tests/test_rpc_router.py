@@ -1,10 +1,8 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from pydantic import ValidationError
 
-from pybotx_smartapp_rpc import RPCResultResponse, RPCRouter, SmartApp, \
-    RPCArgsBaseModel, RPCError
+from pybotx_smartapp_rpc import RPCResultResponse, RPCRouter, SmartApp
 from pybotx_smartapp_rpc.middlewares.empty_args_middleware import empty_args_middleware
 
 
@@ -55,10 +53,8 @@ def test_middlewares_order():
     Note - the last middleware is added automatically
     """
 
-
     router_middleware = AsyncMock()
     method_middleware = AsyncMock()
-
 
     rpc = RPCRouter(middlewares=[router_middleware])
 
@@ -72,6 +68,7 @@ def test_middlewares_order():
     assert rpc_method.middlewares[0] is router_middleware
     assert rpc_method.middlewares[1] is method_middleware
     assert rpc_method.middlewares[-1] is empty_args_middleware
+
 
 async def test_rpc_router_call_method_directly():
     rpc = RPCRouter()
@@ -87,4 +84,3 @@ async def test_rpc_router_call_method_directly():
     response = await rpc.rpc_methods["dummy"].handler(MagicMock())
     assert called
     assert response.result == 42
-

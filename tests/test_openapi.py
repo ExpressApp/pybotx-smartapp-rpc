@@ -9,11 +9,13 @@ from pybotx_smartapp_rpc import (
     SmartApp,
     SmartAppRPC,
 )
-from pybotx_smartapp_rpc.openapi_utils import (
-    deep_dict_update,
+from pybotx_smartapp_rpc.openapi.openapi import (
     get_rpc_flat_models_from_routes,
     get_rpc_model_definitions,
     get_rpc_openapi_path,
+)
+from pybotx_smartapp_rpc.openapi.utils import (
+    deep_dict_update,
 )
 
 
@@ -32,18 +34,18 @@ class Meta(BaseModel):
 class UserNotFound(RPCError):
     """Error description."""
 
-    id:str = "UserNotFound"
-    reason:str = "User not found in system"
+    id: str = "UserNotFound"
+    reason: str = "User not found in system"
     meta: Meta
 
 
 class OneUserNotFound(UserNotFound):
-    id:str = "OneUserNotFound"
+    id: str = "OneUserNotFound"
 
 
 class InvalidCredentialsError(RPCError):
-    id:str = "InvalidCredentialsError"
-    reason:str = "Invalid credentials"
+    id: str = "InvalidCredentialsError"
+    reason: str = "Invalid credentials"
 
 
 def test__deep_dict_update() -> None:
@@ -107,7 +109,7 @@ async def test_get_rpc_openapi_path__without_args() -> None:
             "description": None,
             "operationId": "rpc_get_api_version",
             "responses": {
-                "ok": {
+                200: {
                     "content": {
                         "application/json": {
                             "schema": {
@@ -166,7 +168,7 @@ async def test_collect_rpc_method_exists__with_errors() -> None:
                 },
             },
             "responses": {
-                "ok": {
+                200: {
                     "description": "Successful response. **result** field:",
                     "content": {
                         "application/json": {
@@ -206,6 +208,126 @@ async def test_collect_rpc_method_exists__with_errors() -> None:
             },
         }
     }
+
+    # expected_path = {
+    #     "post": {
+    #         "summary": "Get Api Version",
+    #         "tags": ["rpc", "user"],
+    #         "description": None,
+    #         "operationId": "rpc_get_user",
+    #         "requestBody": {
+    #             "required": True,
+    #             "content": {
+    #                 "application/json": {
+    #                     "schema": {
+    #                         "properties": {"id": {"title": "Id", "type": "integer"}},
+    #                         "required": ["id"],
+    #                         "title": "UserArgs",
+    #                         "type": "object",
+    #                     }
+    #                 }
+    #             },
+    #         },
+    #         "responses": {
+    #             200: {
+    #                 "description": "Successful response. **result** field:",
+    #                 "content": {
+    #                     "application/json": {
+    #                         "schema": {"title": "Response Get Api Version",
+    #                                    "type": "integer"}
+    #                     }
+    #                 },
+    #             },
+    #             "UserNotFound": {
+    #                 "description": "**Error**: Error description.",
+    #                 "content": {
+    #                     "application/json": {
+    #                         "schema": {
+    #                             "$defs": {
+    #                                 "Meta": {
+    #                                     "properties": {"user_id": {"title": "User Id",
+    #                                                                "type": "integer"}},
+    #                                     "required": ["user_id"],
+    #                                     "title": "Meta",
+    #                                     "type": "object",
+    #                                 }
+    #                             },
+    #                             "description": "Error description.",
+    #                             "properties": {
+    #                                 "reason": {"default": "User not found in system",
+    #                                            "title": "Reason", "type": "string"},
+    #                                 "id": {"default": "UserNotFound", "title": "Id",
+    #                                        "type": "string"},
+    #                                 "meta": {"$ref": "#/$defs/Meta"},
+    #                             },
+    #                             "required": ["meta"],
+    #                             "title": "UserNotFound",
+    #                             "type": "object",
+    #                         }
+    #                     }
+    #                 },
+    #             },
+    #             "OneUserNotFound": {
+    #                 "description": "**Error**: User not found in system",
+    #                 "content": {
+    #                     "application/json": {
+    #                         "schema": {
+    #                             "$defs": {
+    #                                 "Meta": {
+    #                                     "properties": {"user_id": {"title": "User Id",
+    #                                                                "type": "integer"}},
+    #                                     "required": ["user_id"],
+    #                                     "title": "Meta",
+    #                                     "type": "object",
+    #                                 }
+    #                             },
+    #                             "properties": {
+    #                                 "reason": {"default": "User not found in system",
+    #                                            "title": "Reason", "type": "string"},
+    #                                 "id": {"default": "OneUserNotFound", "title": "Id",
+    #                                        "type": "string"},
+    #                                 "meta": {"$ref": "#/$defs/Meta"},
+    #                             },
+    #                             "required": ["meta"],
+    #                             "title": "OneUserNotFound",
+    #                             "type": "object",
+    #                         }
+    #                     }
+    #                 },
+    #             },
+    #             "InvalidCredentialsError": {
+    #                 "description": "**Error**: Invalid credentials",
+    #                 "content": {
+    #                     "application/json": {
+    #                         "schema": {
+    #                             "$defs": {
+    #                                 "BaseModel": {"properties": {},
+    #                                               "title": "BaseModel",
+    #                                               "type": "object"}
+    #                             },
+    #                             "properties": {
+    #                                 "reason": {"default": "Invalid credentials",
+    #                                            "title": "Reason", "type": "string"},
+    #                                 "id": {"default": "InvalidCredentialsError",
+    #                                        "title": "Id", "type": "string"},
+    #                                 "meta": {
+    #                                     "anyOf": [
+    #                                         {"additionalProperties": True,
+    #                                          "type": "object"},
+    #                                         {"$ref": "#/$defs/BaseModel"},
+    #                                     ],
+    #                                     "title": "Meta",
+    #                                 },
+    #                             },
+    #                             "title": "InvalidCredentialsError",
+    #                             "type": "object",
+    #                         }
+    #                     }
+    #                 },
+    #             },
+    #         },
+    #     },
+    # }
 
     diff = DeepDiff(expected_path, path, ignore_order=True)
     assert not diff, diff

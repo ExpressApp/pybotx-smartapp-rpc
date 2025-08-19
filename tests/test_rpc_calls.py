@@ -24,7 +24,6 @@ from pybotx_smartapp_rpc import (
     SmartApp,
     SmartAppRPC,
 )
-from pybotx_smartapp_rpc.empty_args import EmptyArgs
 
 
 async def test_rpc_call_rpc_error_returned(
@@ -528,12 +527,12 @@ async def test_handle_sync_smartapp_event_wrong_rpc_request(
     diff = DeepDiff(response.model_dump(), expected_response.model_dump())
     assert not diff, diff
 
+
 @pytest.mark.asyncio
 async def test_rpc_call_with_middleware_effect(smartapp_event_factory, bot):
     applied = []
 
     # Middleware to track execution
-
 
     async def router_mw(smartapp: SmartApp, args, call_next):
         applied.append("router_mw")
@@ -548,8 +547,10 @@ async def test_rpc_call_with_middleware_effect(smartapp_event_factory, bot):
     # Create router with our middleware
     rpc = RPCRouter(middlewares=[router_mw])
 
-    @rpc.method("test",middlewares=[method_mw])
-    async def test_method(smartapp: SmartApp,):
+    @rpc.method("test", middlewares=[method_mw])
+    async def test_method(
+        smartapp: SmartApp,
+    ):
         applied.append("handler")
         return RPCResultResponse(result=123)
 
@@ -557,11 +558,13 @@ async def test_rpc_call_with_middleware_effect(smartapp_event_factory, bot):
     smartapp_rpc = SmartAppRPC(routers=[rpc])
 
     # Create event with empty params
-    event = smartapp_event_factory("test",)
+    event = smartapp_event_factory(
+        "test",
+    )
 
     # Execute the RPC call
     result = await smartapp_rpc.handle_sync_smartapp_event(event, bot)
 
     # Assertions
-    assert applied == ["router_mw",'method_mw' ,"handler"]
+    assert applied == ["router_mw", "method_mw", "handler"]
     assert result.data == 123

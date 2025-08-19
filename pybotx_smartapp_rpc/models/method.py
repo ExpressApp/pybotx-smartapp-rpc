@@ -3,8 +3,7 @@ from enum import Enum
 from functools import partial
 from typing import Dict, List, Optional, Union
 
-from pydantic.v1.fields import ModelField
-
+from pybotx_smartapp_rpc.models.model_field import ModelField
 from pybotx_smartapp_rpc.smartapp import SmartApp
 from pybotx_smartapp_rpc.typing import (
     Handler,

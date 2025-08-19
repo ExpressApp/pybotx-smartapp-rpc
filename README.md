@@ -1,3 +1,5 @@
+from pybotx_smartapp_rpc.new_openapi.refactored_utils.support_methods import get_rpc_flat_models_from_routes
+
 # BotX-SmartApp-RPC
 Библиотека, позволяющая писать смартаппы, используя [наш JSONRPC-like протокол](https://ccsteam.atlassian.net/wiki/spaces/EI/pages/193167368/SmartApp+RPC)
 
@@ -203,23 +205,24 @@ application.openapi = get_custom_openapi
 ```
 
 Пример функции `custom_openapi`:
+
 ```python
 from fastapi.encoders import jsonable_encoder
 from fastapi.openapi.models import OpenAPI
 from fastapi.openapi.utils import get_openapi
 from pybotx_smartapp_rpc import RPCRouter
-from pybotx_smartapp_rpc.openapi_utils import *
+from pybotx_smartapp_rpc.openapi.old.openapi_utils import *
 from pydantic.schema import get_model_name_map
 from starlette.routing import BaseRoute
 
 
 def custom_openapi(
-    *,
-    title: str,
-    version: str,
-    fastapi_routes: Sequence[BaseRoute],
-    rpc_router: RPCRouter,
-    **kwargs: Any,
+        *,
+        title: str,
+        version: str,
+        fastapi_routes: Sequence[BaseRoute],
+        rpc_router: RPCRouter,
+        **kwargs: Any,
 ) -> Dict[str, Any]:
     openapi_dict = get_openapi(
         title=title,

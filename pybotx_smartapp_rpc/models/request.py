@@ -1,12 +1,10 @@
 from typing import Any, Dict, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 
 class RPCArgsBaseModel(BaseModel):
-    model_config = {
-        "populate_by_name": True
-    }
+    model_config = {"populate_by_name": True}
 
 
 class RPCRequest(BaseModel):

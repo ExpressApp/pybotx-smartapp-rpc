@@ -15,9 +15,7 @@ ResultType = TypeVar("ResultType", bound=_ResultType)
 
 
 class RPCResponseBaseModel(BaseModel):
-    model_config = {
-        "populate_by_name": True
-    }
+    model_config = {"populate_by_name": True}
 
 
 @dataclass

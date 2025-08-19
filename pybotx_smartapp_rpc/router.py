@@ -1,10 +1,10 @@
 import inspect
 from enum import Enum
-from typing import Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
-from pydantic.v1 import BaseConfig
 from pydantic.error_wrappers import ValidationError
-from pydantic.v1.fields import ModelField
+from pydantic.fields import FieldInfo
+from pydantic_core import PydanticUndefined
 
 from pybotx_smartapp_rpc import RPCError
 from pybotx_smartapp_rpc.empty_args import EmptyArgs
@@ -16,12 +16,9 @@ from pybotx_smartapp_rpc.models.responses import (
     build_invalid_rpc_args_error_response,
     build_method_not_found_error_response,
 )
+from pybotx_smartapp_rpc.models.model_field import ModelField
 from pybotx_smartapp_rpc.smartapp import SmartApp
 from pybotx_smartapp_rpc.typing import Handler, Middleware, RPCResponse
-
-# Create a config that allows arbitrary types
-class FlexibleConfig(BaseConfig):
-    arbitrary_types_allowed = True
 
 
 class RPCRouter:
@@ -119,29 +116,51 @@ class RPCRouter:
             rpc_method.errors_models = {**errors_models, **rpc_method.errors_models}
             self.rpc_methods[rpc_method_name] = rpc_method
 
+    def _get_handler_request_argument_model(
+        self, handler_signature: inspect.Signature
+    ) -> Optional[ModelField]:
+        args_annotations = [
+            arg[1].annotation for arg in handler_signature.parameters.items()
+        ]
+        if len(args_annotations) >= 2:
+            return self.create_model_field(
+                name=str(args_annotations[1].__name__),
+                type_=args_annotations[1],
+            )
+        return None
+
+    def _get_handler_response_model(
+        self,
+        handler_signature: inspect.Signature,
+        return_type: Optional[Type[ResultType]],
+        name: str,
+    ) -> Optional[ModelField]:
+
+        if return_type:
+            response_type = return_type
+        else:
+            return_annotation = handler_signature.return_annotation
+            if hasattr(return_annotation, "__args__"):  # noqa: WPS421
+                response_type = return_annotation.__args__[0]
+            else:
+                response_type = None
+
+        return self.create_model_field(
+            name=name,
+            type_=response_type,
+        )
+
     def _get_args_and_return_field(
         self,
         handler: Handler,
         return_type: Optional[Type[ResultType]] = None,
     ) -> Tuple[Optional[ModelField], ModelField]:
         signature = inspect.signature(handler)
-        return_annotation = signature.return_annotation
-        if hasattr(return_annotation, "__args__"):  # noqa: WPS421
-            response_type = return_annotation.__args__[0]
-        else:
-            response_type = None
 
-        if return_type:
-            response_type = return_type
-
-        response_field = self._get_ModelField(name=f"Response_{handler.__name__}",
-            type_=response_type,)
-
-        args_annotations = [arg[1].annotation for arg in signature.parameters.items()]
-        if len(args_annotations) >= 2:
-            arg_field = self._get_ModelField(name=str(args_annotations[1].__name__), type_=args_annotations[1])
-        else:
-            arg_field = None  # type: ignore
+        response_field = self._get_handler_response_model(
+            signature, return_type, f"Response_{handler.__name__}"
+        )
+        arg_field = self._get_handler_request_argument_model(signature)
 
         return arg_field, response_field
 
@@ -156,25 +175,30 @@ class RPCRouter:
 
         errors_fields = {
             error.model_fields["id"].default: {
-                "description": error.__doc__ or error.__fields__["reason"].default,
+                "description": error.__doc__ or error.model_fields["reason"].default,
             }
             for error in errors
-            if error.__fields__["id"].default
+            if error.model_fields["id"].default
         }
         errors_models = {
-            error.__fields__["id"].default: self._get_ModelField(name=error.__name__, type_=error)
+            error.model_fields["id"].default: self.create_model_field(
+                name=error.__name__, type_=error
+            )
             for error in errors
-            if error.__fields__["id"].default
+            if error.model_fields["id"].default
         }
 
         return errors_fields, errors_models
 
-    def _get_ModelField(self, name:str, type_:type) -> ModelField:
-        model_field =  ModelField(
-            name=name,
-            type_=type_,
-            model_config=FlexibleConfig,
-            class_validators={},
+    @staticmethod
+    def create_model_field(
+        name: str,
+        type_: Any,
+        default: Optional[Any] = PydanticUndefined,
+        field_info: Optional[FieldInfo] = None,
+        alias: Optional[str] = None,
+    ) -> ModelField:
+        field_info = field_info or FieldInfo(
+            annotation=type_, default=default, alias=alias
         )
-        model_field.prepare()
-        return model_field
+        return ModelField(name=name, field_info=field_info)

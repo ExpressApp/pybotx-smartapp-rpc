@@ -3,8 +3,7 @@ from typing import List, Union
 from pybotx_smartapp_rpc.models.errors import RPCError
 
 
-class BaseRPCErrorExc(Exception):
-    ...  # noqa: WPS428, WPS604
+class BaseRPCErrorExc(Exception): ...  # noqa: WPS428, WPS604
 
 
 class RPCErrorExc(BaseRPCErrorExc):
