@@ -116,6 +116,19 @@ class RPCRouter:
             rpc_method.errors_models = {**errors_models, **rpc_method.errors_models}
             self.rpc_methods[rpc_method_name] = rpc_method
 
+    @staticmethod
+    def _create_model_field(
+        name: str,
+        type_: Any,
+        default: Optional[Any] = PydanticUndefined,
+        field_info: Optional[FieldInfo] = None,
+        alias: Optional[str] = None,
+    ) -> ModelField:
+        field_info = field_info or FieldInfo(
+            annotation=type_, default=default, alias=alias
+        )
+        return ModelField(name=name, field_info=field_info)
+
     def _get_handler_request_argument_model(
         self, handler_signature: inspect.Signature
     ) -> Optional[ModelField]:
@@ -123,7 +136,7 @@ class RPCRouter:
             arg[1].annotation for arg in handler_signature.parameters.items()
         ]
         if len(args_annotations) >= 2:
-            return self.create_model_field(
+            return self._create_model_field(
                 name=str(args_annotations[1].__name__),
                 type_=args_annotations[1],
             )
@@ -144,7 +157,7 @@ class RPCRouter:
             else:
                 response_type = None
 
-        return self.create_model_field(
+        return self._create_model_field(
             name=name,
             type_=response_type,
         )
@@ -180,7 +193,7 @@ class RPCRouter:
             if error.model_fields["id"].default
         }
         errors_models = {
-            error.model_fields["id"].default: self.create_model_field(
+            error.model_fields["id"].default: self._create_model_field(
                 name=error.__name__, type_=error
             )
             for error in errors
@@ -188,16 +201,3 @@ class RPCRouter:
         }
 
         return errors_fields, errors_models
-
-    @staticmethod
-    def create_model_field(
-        name: str,
-        type_: Any,
-        default: Optional[Any] = PydanticUndefined,
-        field_info: Optional[FieldInfo] = None,
-        alias: Optional[str] = None,
-    ) -> ModelField:
-        field_info = field_info or FieldInfo(
-            annotation=type_, default=default, alias=alias
-        )
-        return ModelField(name=name, field_info=field_info)
