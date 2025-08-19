@@ -44,6 +44,25 @@ class RPCAuthConfig(BaseModel):
 
 
 class RPCAuth(APIKeyHeader):
+    """
+    Handles RPC Authentication implementation via custom API key headers.
+
+    This class extends `APIKeyHeader` to enable a mechanism for validating and
+    parsing RPC API authentication headers. It extracts authentication parameters
+    from the provided API key in the request headers, validates their format, and
+    returns a properly configured instance of `RPCAuthConfig`. The `bot_id` is
+    included as a mandatory attribute for any authentication config.
+
+    Attributes:
+        PATTERN: str
+            Regex pattern used to extract key-value pairs from the API key header.
+
+    Methods:
+        __call__(request: Request) -> RPCAuthConfig
+            Parses and validates the API key from the incoming request, returning
+            the RPC authentication config or raising an appropriate HTTP exception.
+    """
+
     PATTERN = "([^?=&]+)=([^&]*)"
 
     def __init__(

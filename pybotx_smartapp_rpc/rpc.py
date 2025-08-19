@@ -26,6 +26,22 @@ from pybotx_smartapp_rpc.typing import ExceptionHandlerDict, Middleware, RPCResp
 
 
 class SmartAppRPC:
+    """
+    Class for managing SmartApp RPC events and handling RPC requests with configured
+    routers, middlewares, and exception handlers.
+
+    This class is responsible for processing incoming SmartApp events, generating
+    appropriate RPC responses, and managing the lifecycle of the associated RPC
+    request and response objects. It integrates middlewares, exception handling,
+    and a routing mechanism to facilitate proper processing of SmartApp events.
+    The class supports both asynchronous and synchronous event handling for improved
+    flexibility and integration with external systems.
+
+    :ivar router: The main router that manages registered RPC routes and includes
+                  middlewares and error handlers for handling RPC requests.
+    :type router: RPCRouter
+    """
+
     def __init__(
         self,
         routers: List[RPCRouter],
