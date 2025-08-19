@@ -14,7 +14,7 @@ from pybotx_smartapp_rpc.openapi.utils import (
 )
 
 REF_PREFIX = "#/components/schemas/"
-ModelNameMap: type[dict[type[Union[BaseModel | Enum]], str]] = Dict[
+ModelNameMap: type[dict[type[Union[BaseModel, Enum]], str]] = Dict[
     Union[Type[BaseModel], Type[Enum]], str
 ]
 
@@ -60,8 +60,8 @@ def update_fastapi_paths_by_rpc_router(
 
 def get_rpc_model_definitions(
     *,
-    flat_models: set[type[BaseModel | Enum]],
-    model_name_map: dict[type[BaseModel | Enum], str],
+    flat_models: set[type[Union[BaseModel, Enum]]],
+    model_name_map: dict[type[Union[BaseModel, Enum]], str],
 ) -> dict[str, Any]:
     definitions: dict[str, dict[str, Any]] = {}
 
