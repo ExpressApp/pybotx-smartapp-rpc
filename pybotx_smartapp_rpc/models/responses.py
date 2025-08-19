@@ -2,8 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, Generic, List, TypeVar, Union
 
 from pybotx import File
-from pydantic import BaseModel
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from pybotx_smartapp_rpc.models.errors import RPCError
 
