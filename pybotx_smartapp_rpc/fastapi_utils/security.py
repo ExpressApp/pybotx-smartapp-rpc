@@ -6,9 +6,9 @@ from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import APIKeyHeader
 from fastapi.security.base import SecurityBase
-from pydantic import ValidationError, BaseModel
-from starlette.status import HTTP_403_FORBIDDEN
+from pydantic import BaseModel, ValidationError
 from starlette.requests import Request
+from starlette.status import HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN
 
 
 def get_openapi_security_definitions(
@@ -25,6 +25,7 @@ def get_openapi_security_definitions(
     operation_security = {security_name: []}  # type: ignore
     return security_definitions, operation_security
 
+
 DOCS = """Установка параметров для выполнение RPC методов.
 
 * `bot_id` - huid бота. Необязательное поле.
@@ -34,36 +35,50 @@ DOCS = """Установка параметров для выполнение RP
 
 **Example**: `bot_id=UUID&sender_huid=UUID&sender_udid=UUID&chat_id=UUID`"""
 
+
 class RPCAuthConfig(BaseModel):
     bot_id: UUID
     sender_huid: UUID = uuid4()
     sender_udid: UUID = uuid4()
     chat_id: UUID = uuid4()
 
+
 class RPCAuth(APIKeyHeader):
     PATTERN = "([^?=&]+)=([^&]*)"
 
-    def __init__(self,*,bot_id:UUID, scheme_name:str="RPC Auth", name:str="X-RPC-AUTH", description:str=DOCS, **kwargs) -> None:
+    def __init__(
+        self,
+        *,
+        bot_id: UUID,
+        scheme_name: str = "RPC Auth",
+        name: str = "X-RPC-AUTH",
+        description: str = DOCS,
+        **kwargs: Any,
+    ) -> None:
         self.bot_id = bot_id
-        super().__init__(scheme_name=scheme_name,name=name, description=description, **kwargs)
+        super().__init__(
+            scheme_name=scheme_name, name=name, description=description, **kwargs
+        )
 
     async def __call__(self, request: Request) -> RPCAuthConfig:  # type: ignore
         api_key = request.headers.get(self.model.name)
         if not api_key:
             return RPCAuthConfig(bot_id=self.bot_id)
 
-        params = re.findall(self.PATTERN, api_key)  # noqa: WPS110
+        params = re.findall(self.PATTERN, api_key)
         if not params:
             raise HTTPException(
                 status_code=HTTP_403_FORBIDDEN, detail="Invalid RPC Auth format"
             )
         try:
             params_dict = dict(params)
-            if (bot_id:=params_dict.get("bot_id")) is None:
-                params_dict["bot_id"] = bot_id
+            if "bot_id" not in params_dict:
+                params_dict["bot_id"] = self.bot_id
 
             config = RPCAuthConfig(**params_dict)
         except ValidationError as ex:
-            raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail=str(ex))
+            raise HTTPException(
+                status_code=HTTP_400_BAD_REQUEST, detail=str(ex)
+            ) from None
 
         return config

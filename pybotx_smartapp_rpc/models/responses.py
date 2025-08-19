@@ -31,11 +31,11 @@ class RPCResultResponse(Generic[ResultType]):
             "result": self.jsonable_result(),
         }
 
-    def jsonable_result(self) -> JsonableResultType:
+    def jsonable_result(self) -> _JsonableResultType:
         if isinstance(self.result, BaseModel):
-            return self.result.dict(by_alias=True)  # type: ignore
+            return self.result.model_dump(by_alias=True)
 
-        return self.result  # type: ignore
+        return self.result
 
 
 @dataclass

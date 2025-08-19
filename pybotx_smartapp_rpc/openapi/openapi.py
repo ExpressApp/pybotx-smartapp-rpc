@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Type, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, TypeAdapter
 
 from pybotx_smartapp_rpc import RPCRouter
 from pybotx_smartapp_rpc.models.method import RPCMethod
@@ -20,13 +20,11 @@ ModelNameMap: type[dict[type[BaseModel | Enum], str]] = Dict[
 
 
 def update_fastapi_paths_by_rpc_router(
-    openapi_dict: dict[str:Any],
+    openapi_dict: dict[str, Any],
     rpc_router: RPCRouter,
     security_definitions: Optional[dict[str, Any]] = None,
-    operation_security: Optional[dict[str, Any]] = Any,
+    operation_security: Optional[dict[str, Any]] = None,
 ) -> None:
-    """Update the fastapi dict returned from get_openapi by registered SmartApp methods information"""
-
     if security_definitions is not None:
         openapi_dict.setdefault("components", {}).setdefault(
             "securitySchemes", {}
@@ -44,7 +42,7 @@ def update_fastapi_paths_by_rpc_router(
         if not method.include_in_schema:
             continue
 
-        if path := get_rpc_openapi_path(  # type: ignore
+        if path := get_rpc_openapi_path(
             method_name=method_name,
             route=method,
             model_name_map=rpc_model_name_map,
@@ -62,27 +60,33 @@ def update_fastapi_paths_by_rpc_router(
 
 def get_rpc_model_definitions(
     *,
-    flat_models: Set[Union[Type[BaseModel], Type[Enum]]],
-    model_name_map: Dict[Union[Type[BaseModel], Type[Enum]], str],
-) -> Dict[str, Any]:
+    flat_models: set[type[BaseModel | Enum]],
+    model_name_map: dict[type[BaseModel | Enum], str],
+) -> dict[str, Any]:
+    definitions: dict[str, dict[str, Any]] = {}
 
-    definitions: Dict[str, Dict[str, Any]] = {}
     for model in flat_models:
-        # Get the JSON schema of the model (including nested definitions under '$defs')
-        m_schema = model.model_json_schema(ref_template=REF_PREFIX + "{model}")
+        if isinstance(model, type) and issubclass(model, BaseModel):
+            m_schema = model.model_json_schema(ref_template=REF_PREFIX + "{model}")
+        elif isinstance(model, type) and issubclass(model, Enum):
+            m_schema = TypeAdapter(model).json_schema(
+                ref_template=REF_PREFIX + "{model}"
+            )
+        else:
+            m_schema = TypeAdapter(model).json_schema(
+                ref_template=REF_PREFIX + "{model}"
+            )
 
-        # Extract nested model definitions from $defs (if present)
         nested_defs = m_schema.pop("$defs", {})
-
-        # Update overall definitions with nested definitions
         definitions.update(nested_defs)
 
         model_name = model_name_map[model]
 
+        # Trim FastAPI-style docstrings if present
         if "description" in m_schema:
             m_schema["description"] = m_schema["description"].split("\f")[0]
 
-        # Add the model's own schema under its mapped name
+        # Register schema under the resolved name
         definitions[model_name] = m_schema
 
     return definitions
@@ -94,13 +98,13 @@ def get_rpc_flat_models_from_routes(
     body_fields_from_routes: List[ModelField] = []
     responses_from_routes: List[ModelField] = []
 
-    for method_name, rpc_method in router.rpc_methods.items():
+    for rpc_method in router.rpc_methods.values():
         if not rpc_method.include_in_schema:
             continue
 
         if rpc_method.arguments_field:
             body_fields_from_routes.append(
-                rpc_method.arguments_field,  # type: ignore
+                rpc_method.arguments_field,
             )
         if rpc_method.response_field:
             responses_from_routes.append(rpc_method.response_field)
@@ -116,7 +120,7 @@ def get_rpc_flat_models_from_routes(
     )
 
 
-def get_rpc_openapi_path(  # noqa: WPS231
+def get_rpc_openapi_path(
     *,
     method_name: str,
     route: RPCMethod,
@@ -156,7 +160,7 @@ def get_rpc_openapi_path(  # noqa: WPS231
             openapi_response = operation_errors.setdefault(str(error_status_code), {})
 
             if route.errors_models and (
-                field := route.errors_models[error_status_code]  # noqa: WPS332
+                field := route.errors_models[error_status_code]
             ):
                 error_schema = get_schema_or_ref(field, model_name_map, REF_PREFIX)
 

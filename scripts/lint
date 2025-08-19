@@ -1,9 +1,20 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-set -ex
+# ---------------------------------------------------------------
+# 1. Проверяем форматирование (equivalent to: black --check --diff)
+#    --diff   → вывод изменений
+#    --check  → не править файлы, вернуть ненулевой код, если найдены проблемы
+# ---------------------------------------------------------------
+ruff format --check --diff pybotx_smartapp_rpc tests
 
-black --check --diff pybotx_smartapp_rpc tests
-isort --profile black --check-only pybotx_smartapp_rpc tests
+# ---------------------------------------------------------------
+# 2. Запускаем все lint-правила (B, E, F, S, B*, W*, N*, Q*, ...)
+#    Конфигурация берётся из pyproject.toml / ruff.toml
+# ---------------------------------------------------------------
+ruff check pybotx_smartapp_rpc tests
 
-mypy pybotx_smartapp_rpc tests
-flake8 pybotx_smartapp_rpc tests
+# ---------------------------------------------------------------
+# 3. Type-checking
+# ---------------------------------------------------------------
+mypy --config-file=setup.cfg pybotx_smartapp_rpc tests

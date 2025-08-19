@@ -15,6 +15,7 @@ from pybotx import (
     UserDevice,
     UserSender,
 )
+from starlette.requests import Request
 
 
 @pytest.fixture
@@ -129,3 +130,24 @@ def image() -> Image:
         _file_mimetype="image/png",
         _file_hash="Jd9r+OKpw5y+FSCg1xNTSUkwEo4nCW1Sn1AkotkOpH0=",
     )
+
+
+@pytest.fixture
+def request_factory() -> Callable[[dict[str, str]], Request]:
+    def _make_request(headers: dict[str, str] | None = None) -> Request:
+        headers = headers or {}
+        # Starlette expects lowercase header names and bytes
+        raw_headers = [
+            (k.lower().encode("utf-8"), v.encode("utf-8")) for k, v in headers.items()
+        ]
+        scope = {
+            "type": "http",
+            "http_version": "1.1",
+            "method": "GET",
+            "path": "/",
+            "query_string": b"",
+            "headers": raw_headers,
+        }
+        return Request(scope)
+
+    return _make_request

@@ -111,7 +111,8 @@ async def test_rpc_call_with_wrong_args(
             "status": "error",
             "errors": [
                 {
-                    "reason": "Input should be a valid integer, unable to parse string as an integer",
+                    "reason": "Input should be a valid integer, "
+                    "unable to parse string as an integer",
                     "id": "INT_PARSING",
                     "meta": {"location": ("first",)},
                 },
@@ -473,7 +474,8 @@ async def test_handle_sync_smartapp_event_with_wrong_args(
     expected_response = BotAPISyncSmartAppEventErrorResponse.from_domain(
         errors=[
             {
-                "reason": "Input should be a valid integer, unable to parse string as an integer",
+                "reason": "Input should be a valid integer, "
+                "unable to parse string as an integer",
                 "id": "INT_PARSING",
                 "meta": {"location": ("first",)},
             },

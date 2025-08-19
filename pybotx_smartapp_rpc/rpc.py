@@ -26,7 +26,7 @@ from pybotx_smartapp_rpc.typing import ExceptionHandlerDict, Middleware, RPCResp
 
 
 class SmartAppRPC:
-    def __init__(  # noqa: WPS234
+    def __init__(
         self,
         routers: List[RPCRouter],
         middlewares: Optional[List[Middleware]] = None,

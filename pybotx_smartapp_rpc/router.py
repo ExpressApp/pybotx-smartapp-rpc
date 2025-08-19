@@ -10,13 +10,13 @@ from pybotx_smartapp_rpc import RPCError
 from pybotx_smartapp_rpc.empty_args import EmptyArgs
 from pybotx_smartapp_rpc.middlewares.empty_args_middleware import empty_args_middleware
 from pybotx_smartapp_rpc.models.method import RPCMethod
+from pybotx_smartapp_rpc.models.model_field import ModelField
 from pybotx_smartapp_rpc.models.request import RPCRequest
 from pybotx_smartapp_rpc.models.responses import (
     ResultType,
     build_invalid_rpc_args_error_response,
     build_method_not_found_error_response,
 )
-from pybotx_smartapp_rpc.models.model_field import ModelField
 from pybotx_smartapp_rpc.smartapp import SmartApp
 from pybotx_smartapp_rpc.typing import Handler, Middleware, RPCResponse
 
@@ -134,13 +134,12 @@ class RPCRouter:
         handler_signature: inspect.Signature,
         return_type: Optional[Type[ResultType]],
         name: str,
-    ) -> Optional[ModelField]:
-
+    ) -> ModelField:
         if return_type:
             response_type = return_type
         else:
             return_annotation = handler_signature.return_annotation
-            if hasattr(return_annotation, "__args__"):  # noqa: WPS421
+            if hasattr(return_annotation, "__args__"):
                 response_type = return_annotation.__args__[0]
             else:
                 response_type = None
@@ -154,7 +153,7 @@ class RPCRouter:
         self,
         handler: Handler,
         return_type: Optional[Type[ResultType]] = None,
-    ) -> Tuple[Optional[ModelField], ModelField]:
+    ) -> tuple[Optional[ModelField], ModelField]:
         signature = inspect.signature(handler)
 
         response_field = self._get_handler_response_model(

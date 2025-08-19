@@ -18,12 +18,10 @@ fastapi = { version = "~0.115.1", optional = true }
 fastapi_utils = ["fastapi"]
 
 [tool.poetry.dev-dependencies]
-add-trailing-comma = "^3.2.0"
-black = "25.1.0"
-isort = "6.0.1"
-autoflake = "^2.3.1"
-mypy = "1.17.1"
-wemake-python-styleguide = "0.18.0"
+
+mypy = "1.16.1"
+ruff = "0.12.0"
+
 
 pytest = "^8.4.1"
 pytest-asyncio = "^1.1.0"

@@ -111,7 +111,11 @@ def deep_dict_update(
             destination_dict[key] = source_dict[key]
 
 
-def get_schema_or_ref(model: ModelField, model_name_map, ref_prefix: str) -> dict:
+def get_schema_or_ref(
+    model: ModelField,
+    model_name_map: dict[type[BaseModel | Enum], str],
+    ref_prefix: str,
+) -> dict:
     if model_name := model_name_map.get(model.type_):
         return {"$ref": ref_prefix + model_name}
 
