@@ -1,7 +1,6 @@
 from dataclasses import dataclass
-from typing import Annotated, Any
+from typing import Any
 
-from pydantic import TypeAdapter
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined as Undefined
 

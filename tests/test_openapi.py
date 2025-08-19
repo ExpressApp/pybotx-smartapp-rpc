@@ -404,7 +404,6 @@ def test_update_fastapi_paths_merges_into_existing_empty_sections_gracefully():
     assert "/ping" in openapi_dict["paths"]
 
 
-
 @pytest.mark.parametrize(
     "enum_cls, expected_type, expected_values",
     [
