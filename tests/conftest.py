@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, Union
 from unittest.mock import AsyncMock
 from uuid import UUID, uuid4
 
@@ -134,7 +134,7 @@ def image() -> Image:
 
 @pytest.fixture
 def request_factory() -> Callable[[dict[str, str]], Request]:
-    def _make_request(headers: dict[str, str] | None = None) -> Request:
+    def _make_request(headers: Union[dict[str, str], None] = None) -> Request:
         headers = headers or {}
         # Starlette expects lowercase header names and bytes
         raw_headers = [
