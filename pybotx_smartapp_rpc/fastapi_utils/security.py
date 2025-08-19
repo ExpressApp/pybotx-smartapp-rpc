@@ -8,6 +8,7 @@ from fastapi.security import APIKeyHeader
 from fastapi.security.base import SecurityBase
 from pydantic import ValidationError, BaseModel
 from starlette.status import HTTP_403_FORBIDDEN
+from starlette.requests import Request
 
 
 def get_openapi_security_definitions(
