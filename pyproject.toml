@@ -1,28 +1,32 @@
 [tool.poetry]
 name = "pybotx-smartapp-rpc"
-version = "0.11.0"
+version = "0.12.0"
 description = "eXpress SmartApp JSON-RPC library"
 authors = ["Arseniy Zhiltsov <arseniy.zhiltsov@ccsteam.ru>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.12"
+python = ">=3.9,<3.14"
 
-pydantic = ">=1.6.0,<1.11.0"
-pybotx = ">=0.69.0"
+pydantic = ">=2.8.2,<3.0"
+pybotx = "~0.76.0a1"
+deepdiff = "^8.6.0"
 
-[tool.poetry.dev-dependencies]
-add-trailing-comma = "^2.2.1"
-black = "22.3.0"
-isort = "5.10.1"
-autoflake = "^1.4"
-mypy = "0.910"
-wemake-python-styleguide = "0.16.1"
+fastapi = { version = "~0.115.1", optional = true }
 
-pytest = "^7.0.1"
-pytest-asyncio = "^0.18.1"
-pytest-cov = "^4.1.0"
+[tool.poetry.extras]
+fastapi_utils = ["fastapi"]
+
+[tool.poetry.group.dev.dependencies]
+
+mypy = "1.16.1"
+ruff = "0.12.0"
+
+
+pytest = "^8.4.1"
+pytest-asyncio = "^1.1.0"
+pytest-cov = "^6.2.1"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core >=1.6.0"]
 build-backend = "poetry.core.masonry.api"

@@ -3,8 +3,7 @@ from enum import Enum
 from functools import partial
 from typing import Dict, List, Optional, Union
 
-from pydantic.fields import ModelField
-
+from pybotx_smartapp_rpc.models.model_field import ModelField
 from pybotx_smartapp_rpc.smartapp import SmartApp
 from pybotx_smartapp_rpc.typing import (
     Handler,
@@ -17,6 +16,30 @@ from pybotx_smartapp_rpc.typing import (
 
 @dataclass
 class RPCMethod:
+    """
+    Represents a Remote Procedure Call (RPC) method and its associated behavior.
+
+    This class encapsulates the details and execution logic for an RPC method,
+    including its handler, middlewares, response structure, and configurations.
+    It is responsible for assembling the middleware stack and invoking the RPC handler
+    with the provided arguments.
+
+    :ivar handler: The main handler function for the RPC method.
+    :ivar middlewares: A list of middleware to be applied to the RPC method.
+    :ivar response_field: The field defining the structure of the response returned by
+        the RPC method.
+    :ivar arguments_field: Optional field defining the structure of input arguments
+        for the RPC method.
+    :ivar tags: Tags associated with the RPC method, used for classification or
+        documentation purposes.
+    :ivar errors: A dictionary mapping error codes to error details relevant
+        to the RPC method.
+    :ivar errors_models: A dictionary mapping error codes to model descriptions
+        for error handling in the RPC method.
+    :ivar include_in_schema: Indicates whether the RPC method should be
+        included in the API schema.
+    """
+
     handler: Handler
     middlewares: List[Middleware]
     response_field: ModelField
@@ -36,7 +59,7 @@ class RPCMethod:
         # then stack will be m1(m2(m3(m4(handler()))))
         handler: HandlerWithArgs = self.handler  # type: ignore
         for middleware in self.middlewares[::-1]:
-            part = partial(middleware, call_next=handler)
+            part = partial(middleware, call_next=handler)  # type: ignore
             handler = part
 
         return await handler(smartapp, rpc_args)

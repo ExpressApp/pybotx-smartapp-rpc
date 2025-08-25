@@ -12,6 +12,16 @@ from pybotx_smartapp_rpc.typing import (
 
 
 class ExceptionMiddleware:
+    """
+    Middleware for handling exceptions during the execution of a request.
+
+    This class allows defining custom exception handlers for different types of
+    exceptions that might occur during the execution of a specific request.
+
+    :ivar _exception_handlers: A dictionary mapping exception types to their
+        corresponding handlers. Each handler should be a coroutine function.
+    """
+
     def __init__(
         self,
         exception_handlers: Optional[ExceptionHandlerDict] = None,
@@ -28,7 +38,7 @@ class ExceptionMiddleware:
             rpc_result = await call_next(smartapp, rpc_arguments)
         except Exception as exc:
             exception_handler = self._get_exception_handler(exc)
-            try:  # noqa: WPS505
+            try:
                 return await exception_handler(exc, smartapp)
             except Exception as error_handler_exc:
                 return await default_exception_handler(error_handler_exc, smartapp)

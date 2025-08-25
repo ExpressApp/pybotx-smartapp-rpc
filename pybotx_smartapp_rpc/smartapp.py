@@ -7,6 +7,25 @@ from pybotx.missing import Missing, Undefined
 
 
 class SmartApp:
+    """
+    Represents a SmartApp that integrates with a bot for communication and events.
+
+    This class is designed to facilitate interaction with a bot to send smartapp
+    events and notifications. Its primary purpose is to provide managing
+    smartapp-related notifications and events within a chat context.
+
+    :ivar bot: The bot instance used for communicating with the smart app.
+    :type bot: Bot
+    :ivar event: Optional event related to the smart app context.
+    :type event: Optional[SmartAppEvent]
+    :ivar bot_id: Unique identifier for the bot.
+    :type bot_id: UUID
+    :ivar chat_id: Unique identifier for the chat associated with the smart app.
+    :type chat_id: UUID
+    :ivar state: A simple namespace object for maintaining state information.
+    :type state: SimpleNamespace
+    """
+
     def __init__(
         self,
         bot: Bot,

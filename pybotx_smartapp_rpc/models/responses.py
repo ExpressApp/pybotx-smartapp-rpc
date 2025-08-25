@@ -2,8 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, Generic, List, TypeVar, Union
 
 from pybotx import File
-from pydantic import BaseModel
-from pydantic.error_wrappers import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from pybotx_smartapp_rpc.models.errors import RPCError
 
@@ -15,8 +14,7 @@ ResultType = TypeVar("ResultType", bound=_ResultType)
 
 
 class RPCResponseBaseModel(BaseModel):
-    class Config:
-        allow_population_by_field_name = True
+    model_config = {"populate_by_name": True}
 
 
 @dataclass
@@ -32,11 +30,11 @@ class RPCResultResponse(Generic[ResultType]):
             "result": self.jsonable_result(),
         }
 
-    def jsonable_result(self) -> JsonableResultType:
+    def jsonable_result(self) -> _JsonableResultType:
         if isinstance(self.result, BaseModel):
-            return self.result.dict(by_alias=True)  # type: ignore
+            return self.result.model_dump(by_alias=True)
 
-        return self.result  # type: ignore
+        return self.result
 
 
 @dataclass
@@ -53,7 +51,7 @@ class RPCErrorResponse:
         }
 
     def jsonable_errors(self) -> List[Dict[str, Any]]:
-        return [error.dict() for error in self.errors]
+        return [error.model_dump() for error in self.errors]
 
 
 def build_invalid_rpc_request_error_response(
