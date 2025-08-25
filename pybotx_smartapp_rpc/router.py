@@ -2,7 +2,7 @@ import inspect
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
-from pydantic import ValidationError
+from pydantic import ValidationError, BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
@@ -66,7 +66,12 @@ class RPCRouter:
         include_in_schema: bool = True,
     ) -> Callable[[Handler], Handler]:
         """
-        Decorator, used to registers the RPC method with appropriate configurations.
+        Decorator, used to register the RPC method with appropriate configurations.
+
+        Wrapped function should have attributes:
+         - smartapp: SmartApp
+         - argument: BaseModel
+         - any other arguments
 
         :param rpc_method_name: Unique name for the RPC method to be registered.
         :param middlewares: List of middlewares objects.
@@ -172,7 +177,12 @@ class RPCRouter:
         args_annotations = [
             arg[1].annotation for arg in handler_signature.parameters.items()
         ]
-        if len(args_annotations) >= 2:
+
+        is_second_arg_pydantic_model = len(args_annotations) >= 2 and issubclass(
+            args_annotations[1],  BaseModel
+        )
+
+        if is_second_arg_pydantic_model:
             return self._create_model_field(
                 name=str(args_annotations[1].__name__),
                 type_=args_annotations[1],
