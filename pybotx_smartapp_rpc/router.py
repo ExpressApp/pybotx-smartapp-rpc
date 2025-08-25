@@ -2,7 +2,7 @@ import inspect
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
-from pydantic import ValidationError, BaseModel
+from pydantic import BaseModel, ValidationError
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
@@ -179,7 +179,7 @@ class RPCRouter:
         ]
 
         is_second_arg_pydantic_model = len(args_annotations) >= 2 and issubclass(
-            args_annotations[1],  BaseModel
+            args_annotations[1], BaseModel
         )
 
         if is_second_arg_pydantic_model:
