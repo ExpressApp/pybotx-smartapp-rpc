@@ -36,7 +36,7 @@ class RPCMethod:
         # then stack will be m1(m2(m3(m4(handler()))))
         handler: HandlerWithArgs = self.handler  # type: ignore
         for middleware in self.middlewares[::-1]:
-            part = partial(middleware, call_next=handler)
+            part = partial(middleware, call_next=handler)  # type: ignore
             handler = part
 
         return await handler(smartapp, rpc_args)

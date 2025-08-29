@@ -153,7 +153,7 @@ def get_rpc_openapi_path(  # noqa: WPS231
     # - Errors -
     if route.errors:
         operation_errors = operation.setdefault("responses", {})
-        for (error_status_code, error_response) in route.errors.items():
+        for error_status_code, error_response in route.errors.items():
             process_response: Dict[str, Any] = {}
             openapi_response = operation_errors.setdefault(str(error_status_code), {})
 
