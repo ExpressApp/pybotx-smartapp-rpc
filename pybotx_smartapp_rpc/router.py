@@ -21,7 +21,7 @@ from pybotx_smartapp_rpc.typing import Handler, Middleware, RPCResponse
 
 
 class RPCRouter:
-    def __init__(
+    def __init__(  # noqa: WPS234
         self,
         middlewares: Optional[List[Middleware]] = None,
         tags: Optional[List[Union[str, Enum]]] = None,
@@ -34,7 +34,7 @@ class RPCRouter:
         self.include_in_schema = include_in_schema
         self.errors: List[Type[RPCError]] = errors or []
 
-    def method(
+    def method(  # noqa: WPS211, WPS234
         self,
         rpc_method_name: str,
         middlewares: Optional[List[Middleware]] = None,
@@ -146,11 +146,11 @@ class RPCRouter:
                 class_validators={},
             )
         else:
-            arg_field = None  # type: ignore
+            arg_field = None
 
         return arg_field, response_field
 
-    def _get_error_fields_and_models(
+    def _get_error_fields_and_models(  # noqa: WPS234
         self,
         errors: Optional[List[Type[RPCError]]],
     ) -> Tuple[dict, dict]:
