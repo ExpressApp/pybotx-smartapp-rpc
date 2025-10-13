@@ -102,30 +102,44 @@ async def test_rpc_call_with_wrong_args(
 
     # - Assert -
     assert len(bot.method_calls) == 1
-    bot.send_smartapp_event.assert_awaited_once_with(
-        bot_id=bot_id,
-        chat_id=chat_id,
-        ref=ref,
-        files=[],
-        data={
+    bot.send_smartapp_event.assert_awaited_once()
+
+    actual_call_kwargs = bot.send_smartapp_event.await_args.kwargs
+    expected_call_kwargs = {
+        "bot_id": bot_id,
+        "chat_id": chat_id,
+        "ref": ref,
+        "files": [],
+        "data": {
             "status": "error",
             "errors": [
                 {
                     "reason": "Input should be a valid integer, "
                     "unable to parse string as an integer",
                     "id": "INT_PARSING",
-                    "meta": {"location": ("first",)},
+                    "meta": {
+                        "location": [
+                            "first",
+                        ]
+                    },
                 },
                 {
                     "reason": "Field required",
                     "id": "MISSING",
-                    "meta": {"location": ("second",)},
+                    "meta": {
+                        "location": [
+                            "second",
+                        ]
+                    },
                 },
             ],
             "type": "smartapp_rpc",
         },
-        encrypted=True,
-    )
+        "encrypted": True,
+    }
+
+    diff = DeepDiff(actual_call_kwargs, expected_call_kwargs)
+    assert not diff, diff
 
 
 async def test_rpc_call_method_not_found(
@@ -477,12 +491,20 @@ async def test_handle_sync_smartapp_event_with_wrong_args(
                 "reason": "Input should be a valid integer, "
                 "unable to parse string as an integer",
                 "id": "INT_PARSING",
-                "meta": {"location": ("first",)},
+                "meta": {
+                    "location": [
+                        "first",
+                    ]
+                },
             },
             {
                 "reason": "Field required",
                 "id": "MISSING",
-                "meta": {"location": ("second",)},
+                "meta": {
+                    "location": [
+                        "second",
+                    ]
+                },
             },
         ]
     )

@@ -32,7 +32,7 @@ class RPCResultResponse(Generic[ResultType]):
 
     def jsonable_result(self) -> _JsonableResultType:
         if isinstance(self.result, BaseModel):
-            return self.result.model_dump(by_alias=True)
+            return self.result.model_dump(by_alias=True, mode="json")
 
         return self.result
 
@@ -51,7 +51,7 @@ class RPCErrorResponse:
         }
 
     def jsonable_errors(self) -> List[Dict[str, Any]]:
-        return [error.model_dump() for error in self.errors]
+        return [error.model_dump(mode="json") for error in self.errors]
 
 
 def build_invalid_rpc_request_error_response(
