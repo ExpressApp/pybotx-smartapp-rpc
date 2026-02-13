@@ -9,7 +9,7 @@ readme = "README.md"
 python = ">=3.10,<3.15"
 
 pydantic = ">=2.12.5,<3.0.0"
-pybotx = "0.76.0"
+pybotx = "~0.76.0"
 
 [tool.poetry.group.dev.dependencies]
 add-trailing-comma = "3.1.0"
