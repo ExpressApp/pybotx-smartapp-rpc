@@ -12,7 +12,7 @@ from pybotx_smartapp_rpc.typing import (
 class ExceptionMiddleware:
     def __init__(
         self,
-            exception_handlers: ExceptionHandlerDict | None = None,
+        exception_handlers: ExceptionHandlerDict | None = None,
     ) -> None:
         self._exception_handlers: ExceptionHandlerDict = exception_handlers or {}
 

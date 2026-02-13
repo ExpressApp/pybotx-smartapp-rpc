@@ -12,7 +12,7 @@ class SmartApp:
         bot: Bot,
         bot_id: UUID,
         chat_id: UUID,
-            event: SmartAppEvent | None = None,
+        event: SmartAppEvent | None = None,
     ) -> None:
         self.bot = bot
         self.event = event
@@ -25,7 +25,7 @@ class SmartApp:
     async def send_event(
         self,
         rpc_result: Any,
-            files: list[File] | None = None,
+        files: list[File] | None = None,
         encrypted: bool = True,
     ) -> None:
         await self.bot.send_smartapp_event(
@@ -52,9 +52,9 @@ class SmartApp:
         self,
         title: str,
         body: str,
-            meta: Missing[dict[str, Any]] = Undefined,
+        meta: Missing[dict[str, Any]] = Undefined,
         wait_callback: bool = True,
-            callback_timeout: float | None = None,
+        callback_timeout: float | None = None,
     ) -> UUID:
         return await self.bot.send_smartapp_custom_notification(
             bot_id=self.bot_id,

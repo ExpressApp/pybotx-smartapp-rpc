@@ -27,10 +27,10 @@ from pybotx_smartapp_rpc.typing import ExceptionHandlerDict, Middleware, RPCResp
 class SmartAppRPC:
     def __init__(  # noqa: WPS234
         self,
-            routers: list[RPCRouter],
-            middlewares: list[Middleware] | None = None,
-            exception_handlers: ExceptionHandlerDict | None = None,
-            errors: list[type[RPCError]] | None = None,
+        routers: list[RPCRouter],
+        middlewares: list[Middleware] | None = None,
+        exception_handlers: ExceptionHandlerDict | None = None,
+        errors: list[type[RPCError]] | None = None,
     ) -> None:
         self._middlewares = middlewares or []
         self._insert_exception_middleware(exception_handlers or {})
@@ -106,8 +106,8 @@ class SmartAppRPC:
 
     def _merge_routers(
         self,
-            routers: list[RPCRouter],
-            errors: list[type[RPCError]],
+        routers: list[RPCRouter],
+        errors: list[type[RPCError]],
     ) -> RPCRouter:
         main_router = RPCRouter(middlewares=self._middlewares, errors=errors)
         main_router.include(*routers)

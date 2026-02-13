@@ -126,8 +126,8 @@ async def test_rpc_call_with_wrong_args(
 
 
 async def test_rpc_call_with_unknown_validation_error_type(
-        smartapp_event_factory: Callable[..., SmartAppEvent],
-        bot: AsyncMock,
+    smartapp_event_factory: Callable[..., SmartAppEvent],
+    bot: AsyncMock,
 ) -> None:
     # - Arrange -
     rpc = RPCRouter()
@@ -137,7 +137,7 @@ async def test_rpc_call_with_unknown_validation_error_type(
 
     @rpc.method("echo")
     async def echo_handler(
-            smartapp: SmartApp, args: TextArgs
+        smartapp: SmartApp, args: TextArgs
     ) -> RPCResultResponse[str]:
         return RPCResultResponse(result=args.text)
 

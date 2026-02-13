@@ -23,10 +23,10 @@ from pybotx_smartapp_rpc.typing import Handler, Middleware, RPCResponse
 class RPCRouter:
     def __init__(
         self,
-            middlewares: list[Middleware] | None = None,
-            tags: list[str | Enum] | None = None,
+        middlewares: list[Middleware] | None = None,
+        tags: list[str | Enum] | None = None,
         include_in_schema: bool = True,
-            errors: list[type[RPCError]] | None = None,
+        errors: list[type[RPCError]] | None = None,
     ) -> None:
         self.rpc_methods: dict[str, RPCMethod] = {}
         self.middlewares: list[Middleware] = middlewares or []
@@ -37,10 +37,10 @@ class RPCRouter:
     def method(
         self,
         rpc_method_name: str,
-            middlewares: list[Middleware] | None = None,
-            return_type: type[ResultType] | None = None,
-            tags: list[str | Enum] | None = None,
-            errors: list[type[RPCError]] | None = None,
+        middlewares: list[Middleware] | None = None,
+        return_type: type[ResultType] | None = None,
+        tags: list[str | Enum] | None = None,
+        errors: list[type[RPCError]] | None = None,
         include_in_schema: bool = True,
     ) -> Callable[[Handler], Handler]:
         if rpc_method_name in self.rpc_methods:
@@ -123,7 +123,7 @@ class RPCRouter:
     def _get_args_and_return_type(
         self,
         handler: Handler,
-            return_type: type[ResultType] | None = None,
+        return_type: type[ResultType] | None = None,
     ) -> tuple[type[RPCArgsBaseModel] | None, Any]:
         signature = inspect.signature(handler)
         response_type = self._resolve_response_type(
@@ -135,18 +135,18 @@ class RPCRouter:
         if len(args_annotations) >= 2:
             args_annotation = args_annotations[1]
             if inspect.isclass(args_annotation) and issubclass(
-                    args_annotation,
-                    RPCArgsBaseModel,
+                args_annotation,
+                RPCArgsBaseModel,
             ):
                 return args_annotation, response_type
 
         return None, response_type
 
     def _resolve_response_type(
-            self,
-            *,
-            return_annotation: Any,
-            return_type: type[ResultType] | None,
+        self,
+        *,
+        return_annotation: Any,
+        return_type: type[ResultType] | None,
     ) -> Any:
         if return_type is not None:
             return return_type
@@ -163,7 +163,7 @@ class RPCRouter:
 
     def _get_error_fields_and_models(
         self,
-            errors: list[type[RPCError]] | None,
+        errors: list[type[RPCError]] | None,
     ) -> tuple[dict[str, dict[str, str | None]], dict[str, type[RPCError]]]:
         errors_fields: dict[str, dict[str, str | None]] = {}
         errors_models: dict[str, type[RPCError]] = {}

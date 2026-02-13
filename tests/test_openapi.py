@@ -269,8 +269,8 @@ async def test_flat_models_with_enum_and_any_response_type() -> None:
 
     @rpc.method("typed")
     async def typed_handler(
-            smartapp: SmartApp,
-            rpc_args: ArgsWithEnum,
+        smartapp: SmartApp,
+        rpc_args: ArgsWithEnum,
     ) -> RPCResultResponse[int]:
         return RPCResultResponse(result=1)
 

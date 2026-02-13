@@ -60,9 +60,9 @@ def _normalize_error_id(error_type: str) -> str:
         return "VALUE_ERROR"
 
     if (
-            error_type.startswith("type_error")
-            or error_type.endswith("_parsing")
-            or error_type.endswith("_type")
+        error_type.startswith("type_error")
+        or error_type.endswith("_parsing")
+        or error_type.endswith("_type")
     ):
         return "TYPE_ERROR"
 

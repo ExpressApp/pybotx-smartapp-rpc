@@ -48,7 +48,7 @@ def smartapp_event_factory(
     def factory(
         method: str,
         *,
-            params: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
     ) -> SmartAppEvent:
         smartapp_data: dict[str, Any] = {
             "type": "smartapp_rpc",

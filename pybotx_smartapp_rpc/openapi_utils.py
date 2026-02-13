@@ -11,8 +11,8 @@ REF_PREFIX = "#/components/schemas/"
 
 
 def deep_dict_update(
-        destination_dict: dict[Any, Any],
-        source_dict: dict[Any, Any],
+    destination_dict: dict[Any, Any],
+    source_dict: dict[Any, Any],
 ) -> None:
     for key in source_dict:
         if (
@@ -26,8 +26,8 @@ def deep_dict_update(
 
 
 def _extract_nested_models(
-        annotation: Any,
-        visited: set[type[BaseModel] | type[Enum]] | None = None,
+    annotation: Any,
+    visited: set[type[BaseModel] | type[Enum]] | None = None,
 ) -> set[type[BaseModel] | type[Enum]]:
     if visited is None:
         visited = set()
@@ -81,7 +81,7 @@ def get_rpc_flat_models_from_routes(
 
 
 def get_rpc_model_name_map(
-        flat_models: set[type[BaseModel] | type[Enum]],
+    flat_models: set[type[BaseModel] | type[Enum]],
 ) -> dict[type[BaseModel] | type[Enum], str]:
     model_name_map: dict[type[BaseModel] | type[Enum], str] = {}
     names_counter: dict[str, int] = {}
@@ -101,8 +101,8 @@ def get_rpc_model_name_map(
 
 def get_rpc_model_definitions(
     *,
-        flat_models: set[type[BaseModel] | type[Enum]],
-        model_name_map: dict[type[BaseModel] | type[Enum], str],
+    flat_models: set[type[BaseModel] | type[Enum]],
+    model_name_map: dict[type[BaseModel] | type[Enum], str],
 ) -> dict[str, Any]:
     definitions: dict[str, Any] = {}
     for model in flat_models:
@@ -128,8 +128,8 @@ def get_rpc_model_definitions(
 
 
 def _build_schema_from_type(
-        model: Any,
-        model_name_map: dict[type[BaseModel] | type[Enum], str],
+    model: Any,
+    model_name_map: dict[type[BaseModel] | type[Enum], str],
 ) -> dict[str, Any]:
     if inspect.isclass(model):
         if issubclass(model, BaseModel) or issubclass(model, Enum):
@@ -143,8 +143,8 @@ def _build_schema_from_type(
 
 def get_openapi_operation_rpc_args(
     *,
-        body_model: type[BaseModel] | None,
-        model_name_map: dict[type[BaseModel] | type[Enum], str],
+    body_model: type[BaseModel] | None,
+    model_name_map: dict[type[BaseModel] | type[Enum], str],
 ) -> dict[str, Any] | None:
     if body_model is None:
         return None
@@ -181,8 +181,8 @@ def get_rpc_openapi_path(  # noqa: WPS231
     *,
     method_name: str,
     route: RPCMethod,
-        model_name_map: dict[type[BaseModel] | type[Enum], str],
-        security_scheme: dict[str, Any] | None = None,
+    model_name_map: dict[type[BaseModel] | type[Enum], str],
+    security_scheme: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Taken from FastAPI."""
     path: dict[str, Any] = {}
@@ -221,7 +221,7 @@ def get_rpc_openapi_path(  # noqa: WPS231
             openapi_response = operation_errors.setdefault(str(error_status_code), {})
 
             if route.errors_models and (
-                    error_model := route.errors_models[error_status_code]  # noqa: WPS332
+                error_model := route.errors_models[error_status_code]  # noqa: WPS332
             ):
                 error_field_schema = _build_schema_from_type(
                     error_model,
