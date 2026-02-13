@@ -1,7 +1,8 @@
 from pybotx_smartapp_rpc.models.errors import RPCError
 
 
-class BaseRPCErrorExc(Exception): ...  # noqa: WPS428, WPS604, E701
+class BaseRPCErrorExc(Exception):
+    pass
 
 
 class RPCErrorExc(BaseRPCErrorExc):
