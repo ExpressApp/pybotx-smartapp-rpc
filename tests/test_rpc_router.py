@@ -1,6 +1,8 @@
+from typing import Any
+
 import pytest
 
-from pybotx_smartapp_rpc import RPCResultResponse, RPCRouter, SmartApp
+from pybotx_smartapp_rpc import RPCError, RPCResultResponse, RPCRouter, SmartApp
 
 
 async def test_collect_rpc_method_exists() -> None:
@@ -43,3 +45,32 @@ async def test_include_router_with_method_exists() -> None:
     # - Assert -
     assert "get_api_version" in str(exc.value)
     assert "already registered" in str(exc.value)
+
+
+async def test_collect_rpc_method_without_return_annotation() -> None:
+    # - Arrange -
+    rpc = RPCRouter()
+
+    @rpc.method("get_api_version")
+    async def get_api_version(smartapp: SmartApp):
+        return RPCResultResponse(result=1)
+
+    # - Assert -
+    assert rpc.rpc_methods["get_api_version"].response_type is Any
+
+
+async def test_collect_rpc_method_with_error_without_default_id() -> None:
+    # - Arrange -
+    rpc = RPCRouter()
+
+    class ErrorWithoutDefaultId(RPCError):
+        id: str
+        reason: str = "Error without default id"
+
+    @rpc.method("get_api_version", errors=[ErrorWithoutDefaultId])
+    async def get_api_version(smartapp: SmartApp) -> RPCResultResponse[int]:
+        return RPCResultResponse(result=1)
+
+    # - Assert -
+    assert rpc.rpc_methods["get_api_version"].errors == {}
+    assert rpc.rpc_methods["get_api_version"].errors_models == {}

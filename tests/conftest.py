@@ -1,4 +1,5 @@
-from typing import Any, Callable, Dict, Optional
+from collections.abc import Callable
+from typing import Any
 from unittest.mock import AsyncMock
 from uuid import UUID, uuid4
 
@@ -47,9 +48,9 @@ def smartapp_event_factory(
     def factory(
         method: str,
         *,
-        params: Optional[Dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
     ) -> SmartAppEvent:
-        smartapp_data: Dict[str, Any] = {
+        smartapp_data: dict[str, Any] = {
             "type": "smartapp_rpc",
             "method": method,
         }

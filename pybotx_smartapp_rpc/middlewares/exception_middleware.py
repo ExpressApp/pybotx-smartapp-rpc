@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pybotx_smartapp_rpc.exception_handlers import default_exception_handler
 from pybotx_smartapp_rpc.smartapp import SmartApp
 from pybotx_smartapp_rpc.typing import (
@@ -14,7 +12,7 @@ from pybotx_smartapp_rpc.typing import (
 class ExceptionMiddleware:
     def __init__(
         self,
-        exception_handlers: Optional[ExceptionHandlerDict] = None,
+        exception_handlers: ExceptionHandlerDict | None = None,
     ) -> None:
         self._exception_handlers: ExceptionHandlerDict = exception_handlers or {}
 

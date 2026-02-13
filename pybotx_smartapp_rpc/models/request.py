@@ -1,14 +1,13 @@
-from typing import Any, Dict, Literal
+from typing import Any, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class RPCArgsBaseModel(BaseModel):
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class RPCRequest(BaseModel):
     method: str
     type: Literal["smartapp_rpc"]
-    params: Dict[str, Any] = {}
+    params: dict[str, Any] = Field(default_factory=dict)

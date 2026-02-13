@@ -2,4 +2,11 @@
 
 set -ex
 
-pytest ${@}
+for arg in "$@"; do
+  if [[ "$arg" == "-n" || "$arg" == "--numprocesses" || "$arg" == "-n"* ]]; then
+    poetry run pytest "$@"
+    exit 0
+  fi
+done
+
+poetry run pytest -n auto "$@"

@@ -2,9 +2,5 @@
 
 set -ex
 
-autoflake --recursive --in-place \
-  --remove-all-unused-imports \
-  --ignore-init-module-imports \
-  pybotx_smartapp_rpc tests
-isort --profile black pybotx_smartapp_rpc tests
-black pybotx_smartapp_rpc tests
+poetry run ruff check --fix pybotx_smartapp_rpc tests
+poetry run ruff format pybotx_smartapp_rpc tests

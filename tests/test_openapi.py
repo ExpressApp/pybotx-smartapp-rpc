@@ -1,7 +1,9 @@
-from pydantic import BaseModel
-from pydantic.schema import get_model_name_map
+from enum import Enum
+
+from pydantic import BaseModel, create_model
 
 from pybotx_smartapp_rpc import (
+    RPCArgsBaseModel,
     RPCError,
     RPCResultResponse,
     RPCRouter,
@@ -9,14 +11,16 @@ from pybotx_smartapp_rpc import (
     SmartAppRPC,
 )
 from pybotx_smartapp_rpc.openapi_utils import (
+    _extract_nested_models,
     deep_dict_update,
     get_rpc_flat_models_from_routes,
     get_rpc_model_definitions,
+    get_rpc_model_name_map,
     get_rpc_openapi_path,
 )
 
 
-class UserArgs(BaseModel):
+class UserArgs(RPCArgsBaseModel):
     id: int
 
 
@@ -31,18 +35,18 @@ class Meta(BaseModel):
 class UserNotFound(RPCError):
     """Error description."""
 
-    id = "UserNotFound"
-    reason = "User not found in system"
+    id: str = "UserNotFound"
+    reason: str = "User not found in system"
     meta: Meta
 
 
 class OneUserNotFound(UserNotFound):
-    id = "OneUserNotFound"
+    id: str = "OneUserNotFound"
 
 
 class InvalidCredentialsError(RPCError):
-    id = "InvalidCredentialsError"
-    reason = "Invalid credentials"
+    id: str = "InvalidCredentialsError"
+    reason: str = "Invalid credentials"
 
 
 def test__deep_dict_update() -> None:
@@ -91,7 +95,7 @@ async def test_get_rpc_openapi_path__without_args() -> None:
     async def get_api_version(smartapp: SmartApp) -> RPCResultResponse[int]:
         return RPCResultResponse(result=1)
 
-    rpc_model_name_map = get_model_name_map(get_rpc_flat_models_from_routes(rpc))
+    rpc_model_name_map = get_rpc_model_name_map(get_rpc_flat_models_from_routes(rpc))
 
     # - Act -
     path = get_rpc_openapi_path(
@@ -135,7 +139,7 @@ async def test_collect_rpc_method_exists__with_errors() -> None:
         return RPCResultResponse(result=42)
 
     smartapp_rpc = SmartAppRPC(routers=[rpc], errors=[OneUserNotFound])
-    rpc_model_name_map = get_model_name_map(
+    rpc_model_name_map = get_rpc_model_name_map(
         get_rpc_flat_models_from_routes(smartapp_rpc.router)
     )
 
@@ -216,7 +220,7 @@ async def test_get_rpc_model_definition() -> None:
     smartapp_rpc = SmartAppRPC(routers=[rpc], errors=[])
 
     flat_rpc_models = get_rpc_flat_models_from_routes(smartapp_rpc.router)
-    rpc_model_name_map = get_model_name_map(flat_rpc_models)
+    rpc_model_name_map = get_rpc_model_name_map(flat_rpc_models)
 
     # - Act -
     rpc_definitions = get_rpc_model_definitions(
@@ -242,7 +246,7 @@ async def test_get_rpc_model_definition() -> None:
                 "id": {"default": "UserNotFound", "title": "Id", "type": "string"},
                 "meta": {"$ref": "#/components/schemas/Meta"},
                 "reason": {
-                    "default": "User not found in " "system",
+                    "default": "User not found in system",
                     "title": "Reason",
                     "type": "string",
                 },
@@ -252,3 +256,64 @@ async def test_get_rpc_model_definition() -> None:
             "type": "object",
         },
     }
+
+
+async def test_flat_models_with_enum_and_any_response_type() -> None:
+    class UserRole(str, Enum):
+        ADMIN = "admin"
+
+    class ArgsWithEnum(RPCArgsBaseModel):
+        role: UserRole
+
+    rpc = RPCRouter()
+
+    @rpc.method("typed")
+    async def typed_handler(
+        smartapp: SmartApp,
+        rpc_args: ArgsWithEnum,
+    ) -> RPCResultResponse[int]:
+        return RPCResultResponse(result=1)
+
+    @rpc.method("untyped")
+    async def untyped_handler(smartapp: SmartApp):
+        return RPCResultResponse(result=1)
+
+    flat_rpc_models = get_rpc_flat_models_from_routes(rpc)
+
+    assert ArgsWithEnum in flat_rpc_models
+    assert UserRole in flat_rpc_models
+
+
+def test_get_rpc_model_name_map_with_duplicate_names() -> None:
+    first_duplicate_model = create_model("DuplicatedModel", first=(int, ...))
+    second_duplicate_model = create_model("DuplicatedModel", second=(int, ...))
+
+    model_name_map = get_rpc_model_name_map(
+        {first_duplicate_model, second_duplicate_model},
+    )
+
+    assert set(model_name_map.values()) == {"DuplicatedModel", "DuplicatedModel_1"}
+
+
+def test_get_rpc_model_definitions_with_enum() -> None:
+    class UserRole(str, Enum):
+        ADMIN = "admin"
+        USER = "user"
+
+    flat_rpc_models = {UserRole}
+    rpc_model_name_map = get_rpc_model_name_map(flat_rpc_models)
+
+    rpc_definitions = get_rpc_model_definitions(
+        flat_models=flat_rpc_models,
+        model_name_map=rpc_model_name_map,
+    )
+
+    assert rpc_definitions["UserRole"] == {
+        "enum": ["admin", "user"],
+        "title": "UserRole",
+        "type": "string",
+    }
+
+
+def test_extract_nested_models_with_non_class_annotation() -> None:
+    assert _extract_nested_models("not_class_annotation") == set()
