@@ -26,7 +26,7 @@ class ExceptionMiddleware:
             rpc_result = await call_next(smartapp, rpc_arguments)
         except Exception as exc:
             exception_handler = self._get_exception_handler(exc)
-            try:
+            try:  # noqa: WPS505
                 return await exception_handler(exc, smartapp)
             except Exception as error_handler_exc:
                 return await default_exception_handler(error_handler_exc, smartapp)

@@ -177,7 +177,7 @@ def get_openapi_rpc_metadata(*, name: str, route: RPCMethod) -> dict[str, Any]:
     return operation
 
 
-def get_rpc_openapi_path(
+def get_rpc_openapi_path(  # noqa: WPS231
     *,
     method_name: str,
     route: RPCMethod,
@@ -221,7 +221,7 @@ def get_rpc_openapi_path(
             openapi_response = operation_errors.setdefault(str(error_status_code), {})
 
             if route.errors_models and (
-                    error_model := route.errors_models[error_status_code]
+                    error_model := route.errors_models[error_status_code]  # noqa: WPS332
             ):
                 error_field_schema = _build_schema_from_type(
                     error_model,
