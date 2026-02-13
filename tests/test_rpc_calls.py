@@ -1,4 +1,4 @@
-from typing import Callable
+from collections.abc import Callable
 from unittest.mock import AsyncMock
 from uuid import UUID
 
@@ -123,6 +123,36 @@ async def test_rpc_call_with_wrong_args(
         },
         encrypted=True,
     )
+
+
+async def test_rpc_call_with_unknown_validation_error_type(
+        smartapp_event_factory: Callable[..., SmartAppEvent],
+        bot: AsyncMock,
+) -> None:
+    # - Arrange -
+    rpc = RPCRouter()
+
+    class TextArgs(RPCArgsBaseModel):
+        text: str = Field(min_length=5)
+
+    @rpc.method("echo")
+    async def echo_handler(
+            smartapp: SmartApp, args: TextArgs
+    ) -> RPCResultResponse[str]:
+        return RPCResultResponse(result=args.text)
+
+    smartapp_rpc = SmartAppRPC(routers=[rpc])
+
+    # - Act -
+    await smartapp_rpc.handle_smartapp_event(
+        smartapp_event_factory("echo", params={"text": "abc"}),
+        bot,
+    )
+
+    # - Assert -
+    response_data = bot.send_smartapp_event.await_args.kwargs["data"]
+    assert response_data["errors"][0]["id"] == "STRING_TOO_SHORT"
+    assert "at least 5 characters" in response_data["errors"][0]["reason"]
 
 
 async def test_rpc_call_method_not_found(
@@ -392,10 +422,11 @@ async def test_handle_sync_smartapp_event_without_args(
     )
 
     # - Assert -
-    assert response == BotAPISyncSmartAppEventResultResponse.from_domain(
+    expected_response = BotAPISyncSmartAppEventResultResponse.from_domain(
         data=1,
         files=Undefined,
     )
+    assert response.jsonable_dict() == expected_response.jsonable_dict()
 
 
 async def test_handle_sync_smartapp_event_rpc_error_returned(
@@ -425,7 +456,7 @@ async def test_handle_sync_smartapp_event_rpc_error_returned(
     )
 
     # - Assert -
-    assert response == BotAPISyncSmartAppEventErrorResponse.from_domain(
+    expected_response = BotAPISyncSmartAppEventErrorResponse.from_domain(
         errors=[
             {
                 "reason": "Api version undefined",
@@ -434,6 +465,7 @@ async def test_handle_sync_smartapp_event_rpc_error_returned(
             },
         ]
     )
+    assert response.jsonable_dict() == expected_response.jsonable_dict()
 
 
 async def test_handle_sync_smartapp_event_with_wrong_args(
@@ -463,7 +495,7 @@ async def test_handle_sync_smartapp_event_with_wrong_args(
     )
 
     # - Assert -
-    assert response == BotAPISyncSmartAppEventErrorResponse.from_domain(
+    expected_response = BotAPISyncSmartAppEventErrorResponse.from_domain(
         errors=[
             {
                 "reason": "value is not a valid integer",
@@ -477,6 +509,7 @@ async def test_handle_sync_smartapp_event_with_wrong_args(
             },
         ]
     )
+    assert response.jsonable_dict() == expected_response.jsonable_dict()
 
 
 async def test_handle_sync_smartapp_event_wrong_rpc_request(
@@ -504,7 +537,7 @@ async def test_handle_sync_smartapp_event_wrong_rpc_request(
     )
 
     # - Assert -
-    assert response == BotAPISyncSmartAppEventErrorResponse.from_domain(
+    expected_response = BotAPISyncSmartAppEventErrorResponse.from_domain(
         errors=[
             {
                 "reason": "Invalid RPC request: field required",
@@ -513,3 +546,4 @@ async def test_handle_sync_smartapp_event_wrong_rpc_request(
             },
         ]
     )
+    assert response.jsonable_dict() == expected_response.jsonable_dict()

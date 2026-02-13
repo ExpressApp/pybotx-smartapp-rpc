@@ -2,8 +2,7 @@
 
 set -ex
 
-black --check --diff pybotx_smartapp_rpc tests
-isort --profile black --check-only pybotx_smartapp_rpc tests
+poetry run ruff format --check pybotx_smartapp_rpc tests
+poetry run ruff check pybotx_smartapp_rpc tests
 
-mypy pybotx_smartapp_rpc tests
-flake8 pybotx_smartapp_rpc tests
+poetry run mypy pybotx_smartapp_rpc tests

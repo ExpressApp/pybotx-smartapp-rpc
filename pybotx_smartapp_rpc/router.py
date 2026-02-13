@@ -1,18 +1,18 @@
 import inspect
+from collections.abc import Callable
 from enum import Enum
-from typing import Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, get_args, get_origin
 
-from pydantic import BaseConfig
-from pydantic.error_wrappers import ValidationError
-from pydantic.fields import ModelField
+from pydantic import ValidationError
 
-from pybotx_smartapp_rpc import RPCError
 from pybotx_smartapp_rpc.empty_args import EmptyArgs
 from pybotx_smartapp_rpc.middlewares.empty_args_middleware import empty_args_middleware
+from pybotx_smartapp_rpc.models.errors import RPCError
 from pybotx_smartapp_rpc.models.method import RPCMethod
-from pybotx_smartapp_rpc.models.request import RPCRequest
+from pybotx_smartapp_rpc.models.request import RPCArgsBaseModel, RPCRequest
 from pybotx_smartapp_rpc.models.responses import (
     ResultType,
+    RPCResultResponse,
     build_invalid_rpc_args_error_response,
     build_method_not_found_error_response,
 )
@@ -21,26 +21,26 @@ from pybotx_smartapp_rpc.typing import Handler, Middleware, RPCResponse
 
 
 class RPCRouter:
-    def __init__(  # noqa: WPS234
+    def __init__(
         self,
-        middlewares: Optional[List[Middleware]] = None,
-        tags: Optional[List[Union[str, Enum]]] = None,
+            middlewares: list[Middleware] | None = None,
+            tags: list[str | Enum] | None = None,
         include_in_schema: bool = True,
-        errors: Optional[List[Type[RPCError]]] = None,
+            errors: list[type[RPCError]] | None = None,
     ) -> None:
-        self.rpc_methods: Dict[str, RPCMethod] = {}
-        self.middlewares: List[Middleware] = middlewares or []
-        self.tags: List[Union[str, Enum]] = tags or []
+        self.rpc_methods: dict[str, RPCMethod] = {}
+        self.middlewares: list[Middleware] = middlewares or []
+        self.tags: list[str | Enum] = tags or []
         self.include_in_schema = include_in_schema
-        self.errors: List[Type[RPCError]] = errors or []
+        self.errors: list[type[RPCError]] = errors or []
 
-    def method(  # noqa: WPS211, WPS234
+    def method(
         self,
         rpc_method_name: str,
-        middlewares: Optional[List[Middleware]] = None,
-        return_type: Optional[Type[ResultType]] = None,
-        tags: Optional[List[Union[str, Enum]]] = None,
-        errors: Optional[List[Type[RPCError]]] = None,
+            middlewares: list[Middleware] | None = None,
+            return_type: type[ResultType] | None = None,
+            tags: list[str | Enum] | None = None,
+            errors: list[type[RPCError]] | None = None,
         include_in_schema: bool = True,
     ) -> Callable[[Handler], Handler]:
         if rpc_method_name in self.rpc_methods:
@@ -54,7 +54,7 @@ class RPCRouter:
             current_tags.extend(tags)
 
         def decorator(handler: Handler) -> Handler:
-            arg_field, response_field = self._get_args_and_return_field(
+            arguments_model, response_type = self._get_args_and_return_type(
                 handler,
                 return_type,
             )
@@ -65,8 +65,8 @@ class RPCRouter:
             self.rpc_methods[rpc_method_name] = RPCMethod(
                 handler=handler,
                 middlewares=method_and_router_middlewares,
-                response_field=response_field,
-                arguments_field=arg_field,
+                response_type=response_type,
+                arguments_model=arguments_model,
                 tags=current_tags,
                 errors=errors_fields,
                 errors_models=errors_models,
@@ -86,9 +86,9 @@ class RPCRouter:
         if not rpc_method:
             return build_method_not_found_error_response(rpc_request.method)
 
-        if rpc_method.arguments_field:
+        if rpc_method.arguments_model:
             try:
-                args = rpc_method.arguments_field.type_(**rpc_request.params)
+                args = rpc_method.arguments_model.model_validate(rpc_request.params)
             except ValidationError as invalid_rpc_args_exc:
                 return build_invalid_rpc_args_error_response(invalid_rpc_args_exc)
         else:
@@ -107,74 +107,77 @@ class RPCRouter:
                 f"RPC methods {already_exist_handlers} already registered!",
             )
 
-        errors_fields, errors_models = self._get_error_fields_and_models(self.errors)
+        router_errors_fields, router_errors_models = self._get_error_fields_and_models(
+            self.errors,
+        )
 
         for rpc_method_name, rpc_method in router.rpc_methods.items():
             rpc_method.middlewares = self.middlewares + rpc_method.middlewares
-            rpc_method.errors = {**errors_fields, **rpc_method.errors}
-            rpc_method.errors_models = {**errors_models, **rpc_method.errors_models}
+            rpc_method.errors = {**router_errors_fields, **rpc_method.errors}
+            rpc_method.errors_models = {
+                **router_errors_models,
+                **rpc_method.errors_models,
+            }
             self.rpc_methods[rpc_method_name] = rpc_method
 
-    def _get_args_and_return_field(
+    def _get_args_and_return_type(
         self,
         handler: Handler,
-        return_type: Optional[Type[ResultType]] = None,
-    ) -> Tuple[Optional[ModelField], ModelField]:
+            return_type: type[ResultType] | None = None,
+    ) -> tuple[type[RPCArgsBaseModel] | None, Any]:
         signature = inspect.signature(handler)
-        return_annotation = signature.return_annotation
-        if hasattr(return_annotation, "__args__"):  # noqa: WPS421
-            response_type = return_annotation.__args__[0]
-        else:
-            response_type = None
-
-        if return_type:
-            response_type = return_type
-
-        response_field = ModelField(
-            name=f"Response_{handler.__name__}",
-            type_=response_type,
-            model_config=BaseConfig,
-            class_validators={},
+        response_type = self._resolve_response_type(
+            return_annotation=signature.return_annotation,
+            return_type=return_type,
         )
 
-        args_annotations = [arg[1].annotation for arg in signature.parameters.items()]
+        args_annotations = [arg.annotation for arg in signature.parameters.values()]
         if len(args_annotations) >= 2:
-            arg_field = ModelField(
-                name=str(args_annotations[1].__name__),
-                type_=args_annotations[1],
-                model_config=BaseConfig,
-                class_validators={},
-            )
-        else:
-            arg_field = None
+            args_annotation = args_annotations[1]
+            if inspect.isclass(args_annotation) and issubclass(
+                    args_annotation,
+                    RPCArgsBaseModel,
+            ):
+                return args_annotation, response_type
 
-        return arg_field, response_field
+        return None, response_type
 
-    def _get_error_fields_and_models(  # noqa: WPS234
+    def _resolve_response_type(
+            self,
+            *,
+            return_annotation: Any,
+            return_type: type[ResultType] | None,
+    ) -> Any:
+        if return_type is not None:
+            return return_type
+
+        if return_annotation is inspect.Signature.empty:
+            return Any
+
+        if get_origin(return_annotation) is RPCResultResponse:
+            response_args = get_args(return_annotation)
+            if response_args:
+                return response_args[0]
+
+        return Any
+
+    def _get_error_fields_and_models(
         self,
-        errors: Optional[List[Type[RPCError]]],
-    ) -> Tuple[dict, dict]:
-        errors_fields: Dict[str, dict] = {}
-        errors_models: Dict[str, ModelField] = {}
+            errors: list[type[RPCError]] | None,
+    ) -> tuple[dict[str, dict[str, str | None]], dict[str, type[RPCError]]]:
+        errors_fields: dict[str, dict[str, str | None]] = {}
+        errors_models: dict[str, type[RPCError]] = {}
         if not errors:
             return errors_fields, errors_models
 
-        errors_fields = {
-            error.__fields__["id"].default: {
-                "description": error.__doc__ or error.__fields__["reason"].default,
-            }
-            for error in errors
-            if error.__fields__["id"].default
-        }
-        errors_models = {
-            error.__fields__["id"].default: ModelField(
-                name=error.__name__,
-                type_=error,
-                class_validators=None,
-                model_config=BaseConfig,
-            )
-            for error in errors
-            if error.__fields__["id"].default
-        }
+        for error in errors:
+            error_id = error.model_fields["id"].default
+            if not isinstance(error_id, str) or not error_id:
+                continue
+
+            reason = error.model_fields["reason"].default
+            description = inspect.cleandoc(error.__doc__) if error.__doc__ else reason
+            errors_fields[error_id] = {"description": description}
+            errors_models[error_id] = error
 
         return errors_fields, errors_models

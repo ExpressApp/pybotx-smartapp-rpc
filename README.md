@@ -11,7 +11,7 @@ poetry add pybotx-smartapp-rpc
 ## Добавление RPC методов
 1. Создайте класс для входящих аргументов:
 ``` python
-from pybotx_smartap_rpc import RPCArgsBaseModel
+from pybotx_smartapp_rpc import RPCArgsBaseModel
 ...
 class SumArgs(RPCArgsBaseModel):
     a: int
@@ -136,8 +136,8 @@ async def get_user_fullname(smartapp: SmartApp) -> RPCResultResponse[str]:
 from pybotx_smartapp_rpc import RPCErrorExc, RPCError
 
 class CustomError(RPCError):
-    id = "CUSTOM_ERROR"
-    reason = "It's error reason"
+    id: str = "CUSTOM_ERROR"
+    reason: str = "It's error reason"
 
 ...
 @rpc.method("return-error")
@@ -145,19 +145,19 @@ async def return_error(smartapp: SmartApp, rpc_arguments: RaiseOneErrorArgs) -> 
     # one error
     raise RPCErrorExc(
         CustomError(
-            meta={"args": rpc_arguments.dict()},
+            meta={"args": rpc_arguments.model_dump()},
         )
     )
     # or list of errors
     raise RPCErrorExc(
         [
             CustomError(
-                meta={"args": rpc_arguments.dict()},
+                meta={"args": rpc_arguments.model_dump()},
             ),
             RPCError(
                 reason="It's one more error reason",
                 id="CUSTOM_ERROR_NUMBER_TWO",
-                meta={"args": rpc_arguments.dict()},
+                meta={"args": rpc_arguments.model_dump()},
             )
         ]
     )
@@ -209,7 +209,6 @@ from fastapi.openapi.models import OpenAPI
 from fastapi.openapi.utils import get_openapi
 from pybotx_smartapp_rpc import RPCRouter
 from pybotx_smartapp_rpc.openapi_utils import *
-from pydantic.schema import get_model_name_map
 from starlette.routing import BaseRoute
 
 
@@ -231,7 +230,7 @@ def custom_openapi(
     paths: Dict[str, Dict[str, Any]] = {}
 
     flat_rpc_models = get_rpc_flat_models_from_routes(rpc_router)
-    rpc_model_name_map = get_model_name_map(flat_rpc_models)
+    rpc_model_name_map = get_rpc_model_name_map(flat_rpc_models)
     rpc_definitions = get_rpc_model_definitions(
         flat_models=flat_rpc_models, model_name_map=rpc_model_name_map
     )
@@ -297,8 +296,8 @@ class Meta(BaseModel):
 
 class UsernotFoundError(RPCError):
     """Error description for swagger."""
-    id = "UserNotFound"
-    reason = "User not found in db"
+    id: str = "UserNotFound"
+    reason: str = "User not found in db"
     meta: Meta
 
 
